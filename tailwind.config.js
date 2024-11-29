@@ -7,6 +7,68 @@ module.exports = {
   ],
   theme: {
     extend: {
+      animation: {
+        'text-shimmer': 'text-shimmer 6s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        'text-fade': 'text-fade 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        'glitch-skew': 'glitch-skew 1s infinite linear alternate-reverse',
+        'glitch-movement': 'glitch-movement 0.4s infinite',
+        'glitch-color': 'glitch-color 0.8s infinite',
+      },
+      keyframes: {
+        'text-shimmer': {
+          '0%, 100%': {
+            'background-position': '0% center',
+            'opacity': '1'
+          },
+          '50%': {
+            'background-position': '-200% center',
+            'opacity': '0.8'
+          }
+        },
+        'text-fade': {
+          '0%': {
+            'opacity': '0',
+            'transform': 'translateY(10px)'
+          },
+          '100%': {
+            'opacity': '1',
+            'transform': 'translateY(0)'
+          }
+        },
+        'glitch-skew': {
+          '0%': { transform: 'skew(0deg)' },
+          '20%': { transform: 'skew(2deg)' },
+          '40%': { transform: 'skew(-2deg)' },
+          '60%': { transform: 'skew(1deg)' },
+          '80%': { transform: 'skew(-1deg)' },
+          '100%': { transform: 'skew(0deg)' }
+        },
+        'glitch-movement': {
+          '0%, 100%': { transform: 'translate(0)' },
+          '20%': { transform: 'translate(-2px, 2px)' },
+          '40%': { transform: 'translate(-2px, -2px)' },
+          '60%': { transform: 'translate(2px, 2px)' },
+          '80%': { transform: 'translate(2px, -2px)' }
+        },
+        'glitch-color': {
+          '0%, 100%': { 
+            textShadow: '-2px 0 #ff00ea, 2px 2px #00ffff',
+            transform: 'translate(0)'
+          },
+          '25%': { 
+            textShadow: '2px 0 #ff00ea, -2px -2px #00ffff',
+            transform: 'translate(-2px, 1px)'
+          },
+          '50%': {
+            textShadow: '-2px 0 #ff00ea, 1px 2px #00ffff',
+            transform: 'translate(1px, -1px)'
+          },
+          '75%': {
+            textShadow: '2px 0 #ff00ea, -2px -2px #00ffff',
+            transform: 'translate(-1px, 2px)'
+          }
+        }
+      },
       colors: {
         // You can add custom colors here
       },

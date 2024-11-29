@@ -1,108 +1,123 @@
 'use client';
 
-import { api } from "@convex/_generated/api";
 import { useQuery } from "convex/react";
-import { useState } from "react";
-import ClientNav from "@/components/ClientNav";
+import { api } from "../../../convex/_generated/api";
+import { useEffect, useRef } from "react";
+import CloudinaryImage from "@/components/CloudinaryImage";
+import { useSession } from "next-auth/react";
+import { motion } from "framer-motion";
 
-export default function ShopPage() {
-  const artworks = useQuery(api.artworks.getAll) ?? [];
-  const [priceFilter, setPriceFilter] = useState("all");
+export default function Shop() {
+  const { data: session } = useSession();
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Try to fetch data from Convex
+  const convexArtworks = useQuery(api.artworks.getAll);
 
-  const filteredArtworks = artworks.filter(artwork => {
-    if (!artwork.isForSale) return false;
-    if (priceFilter === "all") return true;
-    if (priceFilter === "under100" && artwork.price) return artwork.price < 100;
-    if (priceFilter === "100to500" && artwork.price) return artwork.price >= 100 && artwork.price <= 500;
-    if (priceFilter === "over500" && artwork.price) return artwork.price > 500;
-    return false;
-  });
+  // Fallback data while Convex loads
+  const fallbackProducts = [
+    {
+      _id: 1,
+      imageUrl: "malik-portfolio/artwork1_kxwqvs",
+      title: "Digital Dreams Print",
+      description: "High-quality print of Digital Dreams artwork",
+      price: 49.99,
+      inStock: true,
+      tags: ["Print", "Digital Art"]
+    },
+    {
+      _id: 2,
+      imageUrl: "malik-portfolio/artwork2_uuqxts",
+      title: "Abstract Reality Canvas",
+      description: "Canvas print of Abstract Reality",
+      price: 89.99,
+      inStock: true,
+      tags: ["Canvas", "Abstract"]
+    },
+    {
+      _id: 3,
+      imageUrl: "malik-portfolio/artwork3_wnlcpx",
+      title: "Future Vision Limited Edition",
+      description: "Limited edition print of Future Vision",
+      price: 149.99,
+      inStock: false,
+      tags: ["Limited Edition", "Print"]
+    }
+  ];
+
+  const products = convexArtworks || fallbackProducts;
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <ClientNav />
-      <main className="pt-32 px-4 pb-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold mb-6">Shop</h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Purchase limited edition prints and digital artwork
-            </p>
-          </div>
+    <main className="min-h-screen bg-black text-white">
+      <div className="container mx-auto px-4 py-16">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-5xl font-bold mb-6">Shop</h1>
+          <p className="text-xl text-gray-400">Purchase prints and original artworks</p>
+        </motion.div>
 
-          {/* Filters */}
-          <div className="mb-12">
-            <div className="flex flex-wrap justify-center gap-4">
-              <button
-                onClick={() => setPriceFilter("all")}
-                className={`px-6 py-2 rounded-full ${
-                  priceFilter === "all"
-                    ? "bg-white text-black"
-                    : "border border-white/20 hover:border-white/40"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setPriceFilter("under100")}
-                className={`px-6 py-2 rounded-full ${
-                  priceFilter === "under100"
-                    ? "bg-white text-black"
-                    : "border border-white/20 hover:border-white/40"
-                }`}
-              >
-                Under $100
-              </button>
-              <button
-                onClick={() => setPriceFilter("100to500")}
-                className={`px-6 py-2 rounded-full ${
-                  priceFilter === "100to500"
-                    ? "bg-white text-black"
-                    : "border border-white/20 hover:border-white/40"
-                }`}
-              >
-                $100 - $500
-              </button>
-              <button
-                onClick={() => setPriceFilter("over500")}
-                className={`px-6 py-2 rounded-full ${
-                  priceFilter === "over500"
-                    ? "bg-white text-black"
-                    : "border border-white/20 hover:border-white/40"
-                }`}
-              >
-                Over $500
-              </button>
-            </div>
-          </div>
-
-          {/* Shop Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredArtworks.map((artwork, index) => (
-              <div key={index} className="bg-gray-900 rounded-lg overflow-hidden">
-                <div className="aspect-square bg-gray-800">
-                  <img
-                    src={artwork.imageUrl}
-                    alt={artwork.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">{artwork.title}</h3>
-                  <p className="text-gray-400 mb-4">{artwork.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold">${artwork.price}</span>
-                    <button className="px-6 py-2 bg-white text-black rounded-full hover:bg-gray-200 transition-colors">
-                      Add to Cart
-                    </button>
+        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product, index) => (
+            <motion.div
+              key={product._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="group relative overflow-hidden rounded-lg bg-gray-900"
+            >
+              <CloudinaryImage
+                src={product.imageUrl}
+                alt={product.title}
+                width={400}
+                height={400}
+                className="w-full h-[400px] object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <h3 className="text-2xl font-bold mb-2">{product.title}</h3>
+                  <p className="text-gray-200 mb-4">{product.description}</p>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-2xl font-bold">${product.price}</span>
+                    <span className={`px-3 py-1 rounded-full text-sm ${
+                      product.inStock 
+                        ? 'bg-green-500/20 text-green-300' 
+                        : 'bg-red-500/20 text-red-300'
+                    }`}>
+                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                    </span>
                   </div>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {product.tags?.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 text-sm bg-white/20 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`w-full py-3 rounded-full font-bold transition-colors duration-300 ${
+                      product.inStock
+                        ? 'bg-white text-black hover:bg-gray-200'
+                        : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    }`}
+                    disabled={!product.inStock}
+                  >
+                    {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                  </motion.button>
                 </div>
               </div>
-            ))}
-          </div>
+            </motion.div>
+          ))}
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

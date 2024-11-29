@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as aiTools from "../aiTools.js";
 import type * as artworks from "../artworks.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -27,6 +28,7 @@ import type * as artworks from "../artworks.js";
 declare const fullApi: ApiFromModules<{
   aiTools: typeof aiTools;
   artworks: typeof artworks;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

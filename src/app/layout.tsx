@@ -1,14 +1,16 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { ConvexClientProvider } from "./providers";
-import ScrollToTop from "@/components/ScrollToTop";
+import './globals.css';
+import { Inter } from 'next/font/google';
+import { ConvexClientProvider } from '@/context/ConvexClientProvider';
+import { AuthProvider } from '@/context/AuthContext';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import { Providers } from '@/components/providers/Providers';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: "Malik Arbab - Digital Artist & Creative Developer",
-  description: "Portfolio and digital artwork by Malik Arbab",
+export const metadata = {
+  title: 'Malik Portfolio',
+  description: 'Creative Developer Portfolio',
 };
 
 export default function RootLayout({
@@ -17,11 +19,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="bg-black">
-      <body className={`${inter.className} bg-black text-white min-h-screen`}>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-black antialiased`}>
         <ConvexClientProvider>
-          <ScrollToTop />
-          {children}
+          <AuthProvider>
+            <div className="relative min-h-screen flex flex-col">
+              {/* Navigation */}
+              <Navigation />
+
+              {/* Main Content */}
+              <main className="relative flex-grow pt-16">
+                <Providers>{children}</Providers>
+              </main>
+
+              <Footer />
+            </div>
+          </AuthProvider>
         </ConvexClientProvider>
       </body>
     </html>

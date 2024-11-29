@@ -25,12 +25,25 @@ export const create = mutation({
     description: v.string(),
     endpoint: v.string(),
     isActive: v.boolean(),
+    category: v.string(),
     configuration: v.object({
       modelType: v.string(),
-      parameters: v.any(),
+      parameters: v.object({
+        styles: v.array(v.string())
+      })
     }),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("aiTools", args);
+  },
+});
+
+// Mutation to delete all AI tools
+export const deleteAll = mutation({
+  handler: async (ctx) => {
+    const allTools = await ctx.db.query("aiTools").collect();
+    for (const tool of allTools) {
+      await ctx.db.delete(tool._id);
+    }
   },
 });

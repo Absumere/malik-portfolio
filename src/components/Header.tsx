@@ -1,20 +1,19 @@
+'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { GlitchText } from './ui/GlitchText';
 
 export default function Header() {
   const pathname = usePathname();
-
   const isActive = (path: string) => pathname === path;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/10">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link 
-            href="/" 
-            className="text-xl font-bold tracking-tight hover:text-gray-300 transition-colors"
-          >
-            MALIK ARBAB
+          <Link href="/" className="text-xl font-bold tracking-tight">
+            <GlitchText text="MALIK ARBAB" className="text-2xl font-bold" />
           </Link>
           
           <div className="flex space-x-8">
@@ -28,6 +27,7 @@ export default function Header() {
             >
               Portfolio
             </Link>
+
             <Link 
               href="/shop" 
               className={`${
@@ -38,6 +38,7 @@ export default function Header() {
             >
               Shop
             </Link>
+
             <Link 
               href="/ai-tools" 
               className={`${
@@ -48,6 +49,7 @@ export default function Header() {
             >
               AI Tools
             </Link>
+
             <Link 
               href="/about" 
               className={`${
