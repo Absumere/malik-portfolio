@@ -1,16 +1,14 @@
-import './globals.css';
-import { Inter } from 'next/font/google';
-import { ConvexClientProvider } from '@/context/ConvexClientProvider';
-import { AuthProvider } from '@/context/AuthContext';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { Providers } from '@/components/providers/Providers';
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexClientProvider } from "./ConvexClientProvider";
+import RootLayoutClient from "@/components/RootLayoutClient";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: 'Malik Portfolio',
-  description: 'Creative Developer Portfolio',
+  title: "Malik Arbab",
+  description: "Technical Director & Creative Technologist",
 };
 
 export default function RootLayout({
@@ -19,24 +17,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-black antialiased`}>
+    <html lang="en" className="scroll-smooth">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <ClerkProvider
+        appearance={{
+          baseTheme: "dark",
+        }}
+      >
         <ConvexClientProvider>
-          <AuthProvider>
-            <div className="relative min-h-screen flex flex-col">
-              {/* Navigation */}
-              <Navigation />
-
-              {/* Main Content */}
-              <main className="relative flex-grow pt-16">
-                <Providers>{children}</Providers>
-              </main>
-
-              <Footer />
-            </div>
-          </AuthProvider>
+          <RootLayoutClient inter={inter}>{children}</RootLayoutClient>
         </ConvexClientProvider>
-      </body>
+      </ClerkProvider>
     </html>
   );
 }

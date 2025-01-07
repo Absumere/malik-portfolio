@@ -61,3 +61,73 @@ export const updateUserProfile = mutation({
     return await ctx.db.patch(userId, updates);
   },
 });
+
+export const getSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    // Get the first admin user's settings
+    const adminUser = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("role"), "admin"))
+      .first();
+
+    if (!adminUser) return null;
+
+    return {
+      siteName: adminUser.name || '',
+      description: adminUser.bio || '',
+      email: adminUser.email || '',
+      socialLinks: adminUser.socialLinks?.reduce((acc: any, link: any) => {
+        acc[link.platform.toLowerCase()] = link.url;
+        return acc;
+      }, {
+        twitter: '',
+        github: '',
+        linkedin: '',
+        instagram: '',
+      }) || {
+        twitter: '',
+        github: '',
+        linkedin: '',
+        instagram: '',
+      },
+    };
+  },
+});
+
+export const updateSettings = mutation({
+  args: {
+    siteName: v.string(),
+    description: v.string(),
+    email: v.string(),
+    socialLinks: v.object({
+      twitter: v.string(),
+      github: v.string(),
+      linkedin: v.string(),
+      instagram: v.string(),
+    }),
+  },
+  handler: async (ctx, args) => {
+    // Get the first admin user
+    const adminUser = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("role"), "admin"))
+      .first();
+
+    if (!adminUser) throw new Error("No admin user found");
+
+    // Convert social links to array format
+    const socialLinks = Object.entries(args.socialLinks).map(([platform, url]) => ({
+      platform,
+      url,
+    }));
+
+    // Update admin user with new settings
+    return await ctx.db.patch(adminUser._id, {
+      name: args.siteName,
+      bio: args.description,
+      email: args.email,
+      socialLinks,
+    });
+  },
+});

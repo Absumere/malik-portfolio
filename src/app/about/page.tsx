@@ -118,19 +118,19 @@ export default function AboutPage() {
               <div className="space-y-2">
                 <h3 className="font-medium text-primary">Development</h3>
                 <p className="text-sm text-gray-300">
-                  Python • TypeScript • Three.js • Odin • P5.js • Next.js • React • Convex • TailwindCSS • GSAP • Framer Motion • WebGL • WebGPU
+                  Python • TypeScript • Three.js • Odin • P5.js • Next.js • React • Convex • TailwindCSS • GSAP • Framer Motion • WebGL • WebGPU • C++ • VS Code
                 </p>
               </div>
               <div className="space-y-2">
                 <h3 className="font-medium text-primary">3D & Real-time</h3>
                 <p className="text-sm text-gray-300">
-                  Blender • C4D • Maya • UE5 • Houdini • SpeedTree • Gaea • ZBrush • Marvelous Designer • Character Creator • iClone • EmberGen • Lumen
+                  Blender • C4D • Maya • UE5 • Houdini • SpeedTree • Gaea • ZBrush • Marvelous Designer • Character Creator • iClone • EmberGen • Lumen • Redshift • Liquigen • Substance Painter • Substance Designer • Wrap 4D • Reality Capture • Cascadeur
                 </p>
               </div>
               <div className="space-y-2">
                 <h3 className="font-medium text-primary">VFX & Post</h3>
                 <p className="text-sm text-gray-300">
-                  After Effects • DaVinci Resolve • Substance Painter/Designer • Wrap 4D • Cascadeur • BorisFX Silhouette • Syntheyes
+                  After Effects • DaVinci Resolve • BorisFX Silhouette • Syntheyes
                 </p>
               </div>
               <div className="space-y-2">
@@ -142,13 +142,13 @@ export default function AboutPage() {
               <div className="space-y-2">
                 <h3 className="font-medium text-primary">ML & Neural Graphics</h3>
                 <p className="text-sm text-gray-300">
-                  PyTorch • TensorFlow • NeRF • Gaussian Splatting • Reality Capture • Photogrammetry • Stable Diffusion
+                  PyTorch • TensorFlow • NeRF • Gaussian Splatting • Stable Diffusion • ComfyUI
                 </p>
               </div>
               <div className="space-y-2">
                 <h3 className="font-medium text-primary">Design & Collaboration</h3>
                 <p className="text-sm text-gray-300">
-                  Adobe Creative Suite • Figma • Git • Docker • VS Code • Linear
+                  Adobe Creative Suite • Figma • Git • Docker
                 </p>
               </div>
             </div>

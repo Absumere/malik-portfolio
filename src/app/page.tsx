@@ -1,8 +1,27 @@
 'use client';
 
 import Link from 'next/link';
+import { RiveAnimation } from '@/components/RiveAnimation/RiveAnimation';
+import { useEffect } from 'react';
 
 export default function Home() {
+  // Force scroll reset when component mounts
+  useEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    // Reset immediately
+    resetScroll();
+
+    // Reset after a small delay to handle dynamic content
+    const timeoutId = setTimeout(resetScroll, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 animate-fade-in">
       {/* Hero Section */}
@@ -11,7 +30,7 @@ export default function Home() {
           Digital Art & Creative Development
         </h1>
         <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-          Exploring the intersection of art and technology through innovative digital experiences
+          Delivering advanced technical solutions in real-time graphics, machine learning, and interactive systems
         </p>
         
         {/* CTA Buttons */}
@@ -31,23 +50,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Featured Section */}
-      <div className="mt-32 w-full max-w-6xl">
-        <h2 className="text-2xl font-semibold mb-8 text-center">Featured Work</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1, 2, 3].map((i) => (
-            <div 
-              key={i}
-              className="aspect-square relative overflow-hidden rounded-lg hover:scale-105 transition-transform"
-            >
-              <img
-                src={`https://source.unsplash.com/random/800x800/?digital-art&sig=${i}`}
-                alt={`Featured artwork ${i}`}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          ))}
-        </div>
+      {/* Rive Animation Section */}
+      <div className="w-full max-w-7xl mt-16">
+        <RiveAnimation />
       </div>
     </main>
   );

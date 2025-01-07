@@ -1,39 +1,48 @@
-import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: 'dxmx5cyu3',
-  api_key: '899921125767321',
-  api_secret: '7v0deFKIu4E4QTptQmgAy0oqpiw'
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const data = await request.json();
-    const { timestamp, folder } = data;
+    const body = await request.json();
+    const { timestamp, folder } = body;
 
     // Generate signature for upload
-    const signatureResponse = cloudinary.utils.api_sign_request(
+    const signature = cloudinary.utils.api_sign_request(
       {
-        timestamp: timestamp,
-        folder: folder,
+        timestamp,
+        folder,
         upload_preset: 'ml_default',
       },
-      '7v0deFKIu4E4QTptQmgAy0oqpiw'
+      process.env.CLOUDINARY_API_SECRET!
     );
 
     return NextResponse.json({
-      signature: signatureResponse,
+      signature,
       timestamp,
-      cloudName: 'dxmx5cyu3',
-      apiKey: '899921125767321',
+      cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
     });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('Upload API error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate upload signature' },
+      { error: 'Failed to process upload request' },
       { status: 500 }
     );
   }
 }
+
+// Configure max file size for the API route
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '500mb',
+    },
+  },
+};
