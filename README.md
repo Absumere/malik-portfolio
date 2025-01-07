@@ -19,11 +19,10 @@ A modern, enterprise-grade portfolio and digital services platform leveraging cu
 ## 🌟 Enterprise Features
 
 - **Real-time Data Sync**: Leveraging Convex's real-time capabilities for instant updates
-- **Microservices Architecture**: Modular design with independent service components
 - **Enterprise-grade Security**: Multi-layer security with Clerk authentication and RBAC
 - **Scalable Infrastructure**: Cloud-native architecture with automated scaling
 - **Analytics & Monitoring**: Comprehensive tracking and performance monitoring
-- **Multi-payment Gateway**: Integrated Stripe and PayPal payment processing
+- **Multi-payment Gateway**: Integrated Stripe payment processing
 
 ## 🚀 Tech Stack
 
@@ -57,10 +56,6 @@ A modern, enterprise-grade portfolio and digital services platform leveraging cu
   - JWT token management
   - Session handling
   - User management dashboard
-- **NextAuth.js**: OAuth integration
-  - Custom authentication strategies
-  - Session management
-  - Role-based access control
 
 ### Media Processing & Storage
 - **Mux**: Enterprise video platform
@@ -108,14 +103,12 @@ graph TD
     D --> E[Data Layer]
     B --> F[Authentication]
     F --> G[Clerk]
-    F --> H[NextAuth.js]
     B --> I[Media Services]
     I --> J[Mux]
     I --> K[Backblaze B2]
     D --> L[Analytics]
     D --> M[Payment Processing]
     M --> N[Stripe]
-    M --> O[PayPal]
 ```
 
 ## 💻 Development
@@ -127,8 +120,8 @@ graph TD
 
 ### Setup
 ```bash
-# Clone repository with submodules
-git clone --recursive https://github.com/yourusername/malik-portfolio.git
+# Clone repository
+git clone https://github.com/yourusername/malik-portfolio.git
 
 # Install dependencies
 npm install
@@ -154,7 +147,6 @@ CLERK_SECRET_KEY=
 # Payment Processing
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
-NEXT_PUBLIC_PAYPAL_CLIENT_ID=
 
 # Media Services
 MUX_TOKEN_ID=
@@ -196,7 +188,7 @@ npm run convex:deploy
 
 ## 🔒 Security Measures
 
-- **Authentication**: Multi-factor authentication
+- **Authentication**: Multi-factor authentication with Clerk
 - **Authorization**: Role-based access control
 - **Data Protection**: End-to-end encryption
 - **API Security**: Rate limiting & JWT validation
