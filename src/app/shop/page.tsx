@@ -1,100 +1,111 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 
-const products = [
+type Product = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+  type: 'print' | 'original';
+  soldOut?: boolean;
+};
+
+const products: Product[] = [
   {
-    id: 1,
-    title: 'Neon Dreams',
-    image: 'https://placehold.co/600x400/111/333?text=Neon+Dreams',
-    category: 'Print Collection',
-    description: 'Limited edition prints featuring surreal neon-infused cityscapes and abstract compositions.',
-    price: '$149.99',
-    status: 'In Stock'
+    id: 'above-print',
+    title: 'Above',
+    description: 'Limited edition digital fine art print',
+    price: 149.99,
+    image: '/api/b2/IMG_1253.PNG',
+    type: 'print',
+    soldOut: true
   },
   {
-    id: 2,
-    title: 'Digital Dreams',
-    image: 'https://placehold.co/600x400/111/333?text=Digital+Dreams',
-    category: 'Digital Art',
-    description: 'High-resolution digital artworks exploring the intersection of technology and imagination.',
-    price: '$99.99',
-    status: 'In Stock'
+    id: 'aether-print',
+    title: 'Äther',
+    description: 'Limited edition digital fine art print',
+    price: 99.99,
+    image: '/api/b2/%C3%A4ther.png',
+    type: 'print',
+    soldOut: true
   },
-  // Add more products as needed
 ];
 
-export default function ShopPage() {
+export default function Shop() {
+  const [filter, setFilter] = useState<'all' | 'print'>('all');
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+
+  const filteredProducts = products.filter(
+    (product) => filter === 'all' || product.type === filter
+  );
+
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="max-w-[1600px] mx-auto px-6 py-24">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-6"
-        >
-          <h1 className="text-[40px] font-medium">Shop</h1>
-          <p className="text-gray-400 text-xl">
+      <div className="max-w-[1600px] w-full mx-auto px-6 py-24">
+        <div className="mb-12">
+          <h1 className="text-4xl font-light tracking-tight">Shop</h1>
+          <p className="text-neutral-400 text-lg">
             Purchase prints and original artworks
           </p>
-        </motion.div>
+        </div>
 
-        {/* Filter buttons */}
-        <div className="flex gap-2 mt-8">
-          <button className="px-4 py-2 bg-white/10 rounded text-sm hover:bg-white/20 transition">
+        <div className="flex gap-2 mb-12 max-w-[1200px]">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-sm transition-colors ${
+              filter === 'all'
+                ? 'bg-white text-black'
+                : 'bg-[#111111] text-white hover:bg-[#222222]'
+            }`}
+          >
             All
           </button>
-          <button className="px-4 py-2 bg-black rounded text-sm border border-white/10 hover:bg-white/10 transition">
+          <button
+            onClick={() => setFilter('print')}
+            className={`px-4 py-2 rounded-sm transition-colors ${
+              filter === 'print'
+                ? 'bg-white text-black'
+                : 'bg-[#111111] text-white hover:bg-[#222222]'
+            }`}
+          >
             Print Collection
-          </button>
-          <button className="px-4 py-2 bg-black rounded text-sm border border-white/10 hover:bg-white/10 transition">
-            Digital Art
-          </button>
-          <button className="px-4 py-2 bg-black rounded text-sm border border-white/10 hover:bg-white/10 transition">
-            Original Works
           </button>
         </div>
 
-        {/* Grid of products */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-12">
-          {products.map((product, index) => (
-            <motion.div 
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="relative"
-            >
-              <div className="p-6 rounded bg-[#141414] hover:bg-[#1a1a1a] transition h-full">
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-2xl font-medium">{product.title}</h3>
-                  <span className="px-2 py-1 text-xs rounded bg-black border border-white/10">
-                    {product.category}
-                  </span>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {filteredProducts.map((product) => (
+            <div key={product.id} className="group relative bg-[#111111] border border-[#222222] hover:border-white/20 transition-all duration-300">
+              <div className="aspect-[4/3] relative">
                 <Image
                   src={product.image}
                   alt={product.title}
-                  width={800}
-                  height={400}
-                  className="w-full h-64 object-cover mb-4"
+                  fill
+                  className={`object-cover transition-opacity duration-300 ${
+                    loadedImages.has(product.id) ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  onLoad={() => setLoadedImages(prev => new Set([...prev, product.id]))}
+                  onError={(e) => {
+                    const imgElement = e.target as HTMLImageElement;
+                    imgElement.style.opacity = '0';
+                  }}
                 />
-                <p className="text-gray-400 mb-6 text-base leading-relaxed">
-                  {product.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">{product.price}</span>
-                  <button className="px-4 py-2 rounded bg-black border border-white/10 hover:bg-white/10 transition text-sm">
-                    Add to Cart
-                  </button>
-                </div>
-                <div className="mt-4">
-                  <span className="text-emerald-400 text-sm">{product.status}</span>
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-medium">{product.title}</h3>
+                <p className="text-neutral-400 text-sm mt-1">{product.description}</p>
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-lg">${product.price}</span>
+                  {product.soldOut && (
+                    <span className="text-red-500">Sold Out</span>
+                  )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

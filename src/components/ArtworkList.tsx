@@ -17,7 +17,7 @@ export default function ArtworkList() {
         await createArtwork({
           title: "Test Artwork",
           description: "A test artwork to verify Convex integration",
-          imageUrl: "https://placeholder.co/300",
+          imageUrl: "/images/placeholder-dark.jpg",
           category: "digital",
           tags: ["test", "digital"],
           technique: "digital",

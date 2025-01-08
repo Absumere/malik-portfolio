@@ -1,11 +1,6 @@
 import { useState } from 'react';
-import { useUser } from '@clerk/nextjs';
-
-interface UploadProgress {
-  uploaded: number;
-  total: number;
-  percentage: number;
-}
+import { useAuth } from '@/context/AuthContext';
+import { UploadProgress } from '@/lib/b2';
 
 interface UseB2UploadReturn {
   upload: (file: File) => Promise<string>;
@@ -15,7 +10,7 @@ interface UseB2UploadReturn {
 }
 
 export function useB2Upload(): UseB2UploadReturn {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -42,35 +37,34 @@ export function useB2Upload(): UseB2UploadReturn {
         throw new Error('Failed to get upload URL');
       }
 
-      const { uploadUrl, authorizationToken, fileUrl } = await response.json();
+      const { uploadUrl, authorizationToken } = await response.json();
 
-      // Upload file with progress tracking
-      await fetch(uploadUrl, {
+      // Upload file directly to B2
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
           'Authorization': authorizationToken,
           'Content-Type': file.type,
-          'X-Bz-File-Name': file.name,
-          'X-Bz-Content-Sha1': 'do_not_verify', // For large files, we skip SHA1 verification
+          'X-Bz-File-Name': encodeURIComponent(file.name),
+          'X-Bz-Content-Sha1': 'do_not_verify',
         },
         body: file,
       });
 
-      setProgress({ uploaded: file.size, total: file.size, percentage: 100 });
-      return fileUrl;
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file');
+      }
+
+      const result = await uploadResponse.json();
+      return result.fileId;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Upload failed';
-      setError(message);
+      setError(err instanceof Error ? err.message : 'Upload failed');
       throw err;
     } finally {
       setIsUploading(false);
+      setProgress(null);
     }
   };
 
-  return {
-    upload,
-    progress,
-    error,
-    isUploading,
-  };
+  return { upload, progress, error, isUploading };
 }

@@ -1,7 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useSession, SessionProvider } from 'next-auth/react';
+import { createContext, useContext, useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 
@@ -28,50 +27,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  isLoading: true,
+  isLoading: false,
   isAdmin: false,
 });
 
-function AuthContextProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const upsertUser = useMutation(api.users.upsertUser);
-  const getUser = useQuery(api.users.getUser, 
-    session?.user?.email ? { email: session.user.email } : "skip"
-  );
-
-  useEffect(() => {
-    const syncUser = async () => {
-      if (session?.user && !user) {
-        const { name, email, image } = session.user;
-        if (!email) return;
-
-        // Sync with Convex
-        await upsertUser({
-          name: name || 'Anonymous',
-          email,
-          image: image || undefined,
-          provider: 'github',
-          providerId: email,
-          createdAt: Date.now(),
-        });
-      }
-    };
-
-    syncUser();
-  }, [session, user, upsertUser]);
-
-  useEffect(() => {
-    if (getUser) {
-      setUser(getUser);
-    }
-  }, [getUser]);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isLoading: status === 'loading',
+        isLoading,
         isAdmin: user?.role === 'admin',
       }}
     >
@@ -80,12 +48,6 @@ function AuthContextProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SessionProvider>
-      <AuthContextProvider>{children}</AuthContextProvider>
-    </SessionProvider>
-  );
+export function useAuth() {
+  return useContext(AuthContext);
 }
-
-export const useAuth = () => useContext(AuthContext);

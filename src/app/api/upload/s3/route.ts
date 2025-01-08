@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { generatePresignedUploadUrl } from '@/lib/s3';
 import { nanoid } from 'nanoid';
-import { auth } from '@clerk/nextjs';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { userId } = auth();
-    if (!userId) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { filename, contentType } = await req.json();
+    const { filename, contentType } = await request.json();
     
-    // Validate input
     if (!filename || !contentType) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -20,15 +20,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate a unique key for the file
-    const fileExtension = filename.split('.').pop();
-    const key = `uploads/${userId}/${nanoid()}.${fileExtension}`;
+    const key = `${session.user.id}/${nanoid()}-${filename}`;
+    const presignedUrl = await generatePresignedUploadUrl(key, contentType);
 
-    const { uploadUrl, fileUrl } = await generatePresignedUploadUrl(key, contentType);
-
-    return NextResponse.json({ uploadUrl, fileUrl });
+    return NextResponse.json({ presignedUrl, key });
   } catch (error) {
-    console.error('Error generating upload URL:', error);
+    console.error('S3 upload error:', error);
     return NextResponse.json(
       { error: 'Failed to generate upload URL' },
       { status: 500 }

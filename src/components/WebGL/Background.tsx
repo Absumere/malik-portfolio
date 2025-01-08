@@ -26,6 +26,7 @@ function MovingPlane() {
       <planeGeometry args={[10, 10, 32, 32]} />
       <shaderMaterial
         ref={materialRef}
+        transparent={true}
         vertexShader={`
           varying vec2 vUv;
           varying float vElevation;
@@ -48,11 +49,12 @@ function MovingPlane() {
           void main() {
             float colorIntensity = (vElevation + 0.2) * 0.5;
             vec3 color = mix(
-              vec3(0.1, 0.1, 0.3),  // Dark blue
-              vec3(0.3, 0.2, 0.5),   // Purple
+              vec3(0.0, 0.0, 0.0),  // Black
+              vec3(0.1, 0.1, 0.2),  // Very dark blue
               colorIntensity
             );
-            gl_FragColor = vec4(color, 1.0);
+            float alpha = smoothstep(-1.0, 1.0, vElevation) * 0.3;
+            gl_FragColor = vec4(color, alpha);
           }
         `}
       />
@@ -64,6 +66,7 @@ export function Background() {
   return (
     <div className="fixed top-0 left-0 w-full h-full -z-10">
       <Canvas camera={{ position: [0, 0, 5] }}>
+        <color attach="background" args={['#000000']} />
         <MovingPlane />
       </Canvas>
     </div>

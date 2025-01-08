@@ -2,7 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import type { ComponentProps } from 'react';
-import MuxPlayerComponent from '@mux/mux-player-react';
+
+// Import MuxPlayer dynamically to prevent SSR issues
+const MuxPlayerComponent = dynamic(
+  () => import('@mux/mux-player-react').then((mod) => mod.default),
+  { ssr: false }
+);
 
 interface MuxPlayerProps {
   playbackId: string;
@@ -19,12 +24,13 @@ const MuxPlayer = ({ playbackId, className = '' }: MuxPlayerProps) => {
         loop
         thumbnailTime={1}
         style={{ height: '100%', width: '100%' }}
+        metadata={{
+          video_title: 'Portfolio Video',
+          player_name: 'Portfolio Player',
+        }}
       />
     </div>
   );
 };
 
-// Prevent SSR issues with the Mux Player
-export default dynamic(() => Promise.resolve(MuxPlayer), {
-  ssr: false
-});
+export default MuxPlayer;

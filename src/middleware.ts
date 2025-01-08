@@ -1,15 +1,10 @@
-import { withAuth } from "next-auth/middleware";
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export default withAuth({
-  callbacks: {
-    authorized: ({ token }) => !!token,
-  },
-});
+export function middleware(request: NextRequest) {
+  return NextResponse.next()
+}
 
 export const config = {
-  matcher: [
-    "/profile/:path*",
-    "/dashboard/:path*",
-    "/api/protected/:path*",
-  ],
-};
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+}

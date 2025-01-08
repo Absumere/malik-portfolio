@@ -2,10 +2,10 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/context/AuthContext';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { loadStripe } from '@stripe/stripe-js/pure';
+import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { PaymentElement } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
@@ -24,52 +24,45 @@ interface TokenPurchaseModalProps {
 }
 
 export default function TokenPurchaseModal({ isOpen, onClose }: TokenPurchaseModalProps) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [selectedPackage, setSelectedPackage] = useState(packages[0]);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const purchase = useMutation(api.tokens.purchase);
+  const [clientSecret, setClientSecret] = useState('');
+  const createPaymentIntent = useMutation(api.tokens.createPaymentIntent);
 
   const handlePackageSelect = async (pkg: typeof packages[0]) => {
-    setSelectedPackage(pkg);
-    setClientSecret(null);
-
     if (!user) {
       toast.error('Please sign in to purchase tokens');
       return;
     }
 
-    setIsLoading(true);
+    setSelectedPackage(pkg);
+    setIsProcessing(true);
+
     try {
-      const response = await fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: pkg.price,
-          tokens: pkg.tokens,
-        }),
+      const secret = await createPaymentIntent({
+        amount: pkg.price * 100, // Convert to cents
+        userId: user._id,
+        packageId: pkg.id,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create payment intent');
-      }
-
-      const data = await response.json();
-      if (!data.clientSecret) {
-        throw new Error('No client secret received');
-      }
-
-      setClientSecret(data.clientSecret);
+      setClientSecret(secret);
     } catch (error) {
-      console.error('Failed to create payment intent:', error);
-      toast.error((error as Error).message || 'Failed to initialize payment');
+      toast.error('Failed to initialize payment');
+      console.error('Payment initialization error:', error);
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    toast.success('Payment successful! Tokens added to your account.');
+    onClose();
+  };
+
+  const handlePaymentError = (error: Error) => {
+    toast.error('Payment failed. Please try again.');
+    console.error('Payment error:', error);
   };
 
   return (
@@ -98,103 +91,44 @@ export default function TokenPurchaseModal({ isOpen, onClose }: TokenPurchaseMod
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded bg-[#141414] p-6 text-left align-middle shadow-xl transition-all border border-white/10">
-                <Dialog.Title as="h3" className="text-2xl font-medium leading-6 text-white mb-8">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-black p-6 border border-white/10 backdrop-blur-xl shadow-xl transition-all">
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-medium leading-6 text-white mb-4"
+                >
                   Purchase Tokens
                 </Dialog.Title>
 
-                <div className="space-y-4">
-                  {packages.map((pkg) => (
-                    <div
-                      key={pkg.id}
-                      className={`p-4 rounded border cursor-pointer transition ${
-                        selectedPackage.id === pkg.id
-                          ? 'border-white bg-white/10'
-                          : 'border-white/10 hover:border-white/30'
-                      }`}
-                      onClick={() => handlePackageSelect(pkg)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="text-lg font-medium text-white">{pkg.name}</h4>
-                          <p className="text-sm text-gray-400">{pkg.tokens} tokens</p>
+                {!clientSecret ? (
+                  <div className="space-y-4">
+                    {packages.map((pkg) => (
+                      <button
+                        key={pkg.id}
+                        onClick={() => handlePackageSelect(pkg)}
+                        disabled={isProcessing}
+                        className={`w-full p-4 rounded-lg border ${
+                          selectedPackage.id === pkg.id
+                            ? 'border-white/20 bg-white/10'
+                            : 'border-white/5 hover:border-white/20 hover:bg-white/5'
+                        } transition-colors`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="text-white font-medium">{pkg.name}</h4>
+                            <p className="text-sm text-gray-400">
+                              {pkg.tokens} tokens
+                            </p>
+                          </div>
+                          <p className="text-lg font-medium text-white">
+                            ${pkg.price}
+                          </p>
                         </div>
-                        <div className="text-xl font-medium text-white">${pkg.price}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {clientSecret && (
-                  <Elements
-                    stripe={stripePromise}
-                    options={{
-                      clientSecret,
-                      appearance: {
-                        theme: 'night',
-                        variables: {
-                          colorPrimary: '#ffffff',
-                          colorBackground: '#1a1a1a',
-                          colorText: '#ffffff',
-                          fontFamily: 'system-ui, sans-serif',
-                        },
-                      },
-                    }}
-                  >
-                    <PaymentElement options={{ layout: 'tabs' }} />
-                    <div className="mt-8 flex justify-end gap-4">
-                      <button
-                        type="button"
-                        className="px-4 py-2 text-sm text-white/70 hover:text-white transition"
-                        onClick={onClose}
-                      >
-                        Cancel
                       </button>
-                      <button
-                        type="submit"
-                        disabled={!stripePromise || isProcessing}
-                        className="px-4 py-2 text-sm bg-white text-black rounded hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={async () => {
-                          if (!stripePromise) {
-                            toast.error('Stripe not initialized');
-                            return;
-                          }
-
-                          setIsProcessing(true);
-                          try {
-                            const stripe = await stripePromise;
-                            const { error, paymentIntent } = await stripe.confirmPayment({
-                              elements: null,
-                              confirmParams: {
-                                return_url: `${window.location.origin}/payment-success`,
-                              },
-                              redirect: 'if_required',
-                            });
-
-                            if (error) {
-                              toast.error(error.message || 'Payment failed');
-                              throw error;
-                            }
-
-                            if (paymentIntent.status === 'succeeded') {
-                              await purchase({
-                                userId: user!.id,
-                                amount: selectedPackage.tokens,
-                                paymentIntentId: paymentIntent.id,
-                              });
-                              toast.success('Payment successful!');
-                              onClose();
-                            }
-                          } catch (error) {
-                            console.error('Payment failed:', error);
-                          } finally {
-                            setIsProcessing(false);
-                          }
-                        }}
-                      >
-                        {isProcessing ? 'Processing...' : `Pay $${selectedPackage.price}`}
-                      </button>
-                    </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Elements stripe={stripePromise} options={{ clientSecret }}>
+                    <PaymentElement />
                   </Elements>
                 )}
               </Dialog.Panel>

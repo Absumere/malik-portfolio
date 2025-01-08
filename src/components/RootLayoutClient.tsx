@@ -1,44 +1,46 @@
 'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Navigation from "@/components/Navigation";
-import ScrollReset from "@/components/ScrollReset";
 import { Toaster } from 'react-hot-toast';
 import Footer from "@/components/Footer";
-import { Analytics } from "@/components/Analytics";
 import { AuthProvider } from "@/context/AuthContext";
-import { Providers } from "@/components/providers/Providers";
 
 export default function RootLayoutClient({
   children,
-  inter,
 }: {
   children: React.ReactNode;
-  inter: any;
 }) {
-  // Force scroll reset on initial load
+  const pathname = usePathname();
+
+  // Scroll to top on page load and tab change
   useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }, []);
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    };
+
+    // Scroll on mount and pathname change
+    scrollToTop();
+
+    // Add scroll event listener
+    window.addEventListener('load', scrollToTop);
+    return () => window.removeEventListener('load', scrollToTop);
+  }, [pathname]);
 
   return (
-    <body className={`${inter.className} bg-black text-white min-h-screen`}>
-      <AuthProvider>
-        <Providers>
-          <ScrollReset />
-          <div className="relative min-h-screen flex flex-col">
-            <Navigation />
-            <main className="flex-grow">
-              <div className="pt-16">{children}</div>
-            </main>
-            <Footer />
-          </div>
-          <Analytics />
-          <Toaster position="bottom-right" />
-        </Providers>
-      </AuthProvider>
-    </body>
+    <AuthProvider>
+      <div className="bg-black min-h-screen flex flex-col">
+        <Navigation />
+        <div className="flex-grow">
+          {children}
+        </div>
+        <Footer />
+        <Toaster position="bottom-right" />
+      </div>
+    </AuthProvider>
   );
 }

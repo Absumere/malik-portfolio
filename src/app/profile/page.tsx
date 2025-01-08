@@ -1,12 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Profile() {
   const { user, isLoading } = useAuth();
@@ -27,7 +25,7 @@ export default function Profile() {
   }
 
   if (!user) {
-    router.push('/auth/signin');
+    router.push('/sign-in');
     return null;
   }
 
@@ -44,81 +42,187 @@ export default function Profile() {
     setIsEditing(false);
   };
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' });
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-black text-white p-8"
-    >
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            {user.image && (
+    <div className="min-h-screen bg-black text-white py-16">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white/5 rounded-lg p-8 backdrop-blur-xl border border-white/10">
+          <div className="flex items-center space-x-4 mb-8">
+            {user.image ? (
               <img
                 src={user.image}
                 alt={user.name}
-                className="w-20 h-20 rounded-full"
+                className="w-20 h-20 rounded-full object-cover"
               />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
+                <span className="text-2xl">{user.name[0]}</span>
+              </div>
             )}
             <div>
-              <h1 className="text-3xl font-bold">{user.name}</h1>
+              <h1 className="text-2xl font-bold">{user.name}</h1>
               <p className="text-gray-400">{user.email}</p>
             </div>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-          >
-            Sign Out
-          </button>
-        </div>
 
-        <div className="space-y-8">
-          <div className="bg-gray-900 p-6 rounded-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">About Me</h2>
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                {isEditing ? 'Cancel' : 'Edit'}
-              </button>
+          {isEditing ? (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">
+                  Bio
+                </label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-md p-3 text-white"
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">
+                  Social Links
+                </label>
+                {socialLinks.map((link, index) => (
+                  <div key={index} className="flex space-x-2 mb-2">
+                    <input
+                      value={link.platform}
+                      onChange={(e) =>
+                        setSocialLinks(
+                          socialLinks.map((l, i) =>
+                            i === index ? { ...l, platform: e.target.value } : l
+                          )
+                        )
+                      }
+                      className="flex-1 bg-black/50 border border-white/10 rounded-md p-2 text-white"
+                      placeholder="Platform"
+                    />
+                    <input
+                      value={link.url}
+                      onChange={(e) =>
+                        setSocialLinks(
+                          socialLinks.map((l, i) =>
+                            i === index ? { ...l, url: e.target.value } : l
+                          )
+                        )
+                      }
+                      className="flex-2 bg-black/50 border border-white/10 rounded-md p-2 text-white"
+                      placeholder="URL"
+                    />
+                    <button
+                      onClick={() =>
+                        setSocialLinks(socialLinks.filter((_, i) => i !== index))
+                      }
+                      className="p-2 text-red-400 hover:text-red-300"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() =>
+                    setSocialLinks([...socialLinks, { platform: '', url: '' }])
+                  }
+                  className="text-sm text-white/70 hover:text-white"
+                >
+                  + Add Social Link
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-400">
+                  Preferences
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={preferences.newsletter}
+                      onChange={(e) =>
+                        setPreferences({
+                          ...preferences,
+                          newsletter: e.target.checked,
+                        })
+                      }
+                      className="rounded border-white/10 bg-black/50"
+                    />
+                    <span>Receive newsletter</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={preferences.notifications}
+                      onChange={(e) =>
+                        setPreferences({
+                          ...preferences,
+                          notifications: e.target.checked,
+                        })
+                      }
+                      className="rounded border-white/10 bg-black/50"
+                    />
+                    <span>Enable notifications</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-4 py-2 text-sm text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateProfile}
+                  className="px-4 py-2 bg-white text-black rounded hover:bg-white/90"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
-            {isEditing ? (
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full bg-gray-800 text-white p-4 rounded-lg"
-                rows={4}
-                placeholder="Tell us about yourself..."
-              />
-            ) : (
-              <p className="text-gray-300">{bio || 'No bio yet'}</p>
-            )}
-          </div>
+          ) : (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-medium mb-2">Bio</h2>
+                <p className="text-gray-400">{bio || 'No bio yet'}</p>
+              </div>
 
-          {isEditing && (
-            <div className="flex justify-end">
+              {socialLinks.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-medium mb-2">Social Links</h2>
+                  <div className="space-y-2">
+                    {socialLinks.map((link, index) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-blue-400 hover:text-blue-300"
+                      >
+                        {link.platform}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h2 className="text-lg font-medium mb-2">Preferences</h2>
+                <div className="space-y-1 text-gray-400">
+                  <p>Newsletter: {preferences.newsletter ? 'Yes' : 'No'}</p>
+                  <p>Notifications: {preferences.notifications ? 'Yes' : 'No'}</p>
+                </div>
+              </div>
+
               <button
-                onClick={handleUpdateProfile}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                onClick={() => setIsEditing(true)}
+                className="mt-4 px-4 py-2 bg-white text-black rounded hover:bg-white/90"
               >
-                Save Changes
+                Edit Profile
               </button>
             </div>
           )}
-
-          <div className="bg-gray-900 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Activity</h2>
-            <p className="text-gray-400">Last login: {new Date(user.lastLogin || Date.now()).toLocaleDateString()}</p>
-          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
