@@ -3,13 +3,9 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/:path*",
-      "destination": "/:path*"
+    { 
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ]
 }
