@@ -20,13 +20,25 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  async rewrites() {
+  trailingSlash: false,
+  async redirects() {
     return [
       {
-        source: '/:path*',
-        destination: '/:path*',
+        source: '/',
+        destination: '/home',
+        permanent: true,
       },
     ];
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/:path*',
+          destination: '/:path*',
+        },
+      ],
+    };
   },
 }
 
