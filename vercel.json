@@ -1,22 +1,15 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "next build",
-  "installCommand": "npm install",
-  "outputDirectory": ".next",
-  "routes": [
+  "regions": ["iad1"],
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     },
     {
-      "src": "/shop/(.*)",
-      "dest": "/shop/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1",
-      "continue": true
+      "source": "/:path*",
+      "destination": "/:path*"
     }
   ]
 }
