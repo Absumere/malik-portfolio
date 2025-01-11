@@ -28,10 +28,16 @@ const nextConfig = {
   },
   webpack: (config, { isServer, nextRuntime }) => {
     if (nextRuntime === 'edge') {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        crypto: 'crypto-browserify',
+      };
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        crypto: false,
-        querystring: false,
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+        path: false,
+        fs: false,
       };
     }
     return config;
