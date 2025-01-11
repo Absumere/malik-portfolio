@@ -30,15 +30,27 @@ const nextConfig = {
     if (nextRuntime === 'edge') {
       config.resolve.alias = {
         ...config.resolve.alias,
-        crypto: 'crypto-browserify',
+        https: false,
+        http: false,
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+        buffer: require.resolve('buffer/'),
+        util: require.resolve('util/'),
       };
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        crypto: require.resolve('crypto-browserify'),
-        stream: require.resolve('stream-browserify'),
-        path: false,
         fs: false,
+        net: false,
+        tls: false,
+        path: false,
+        zlib: false,
+        querystring: false,
+        oauth: false,
       };
+      config.module.rules.push({
+        test: /node_modules[\\/]oauth[\\/]/,
+        use: 'null-loader',
+      });
     }
     return config;
   },

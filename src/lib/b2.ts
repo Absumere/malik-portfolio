@@ -6,9 +6,9 @@ const b2 = new B2({
 });
 
 export interface UploadProgress {
-  uploaded: number;
+  percent: number;
+  loaded: number;
   total: number;
-  percentage: number;
 }
 
 export async function getUploadUrl(fileName: string): Promise<{
@@ -39,38 +39,65 @@ export async function uploadFile(
   file: File,
   onProgress?: (progress: UploadProgress) => void
 ): Promise<string> {
-  const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-  
-  const { uploadUrl, authorizationToken, fileUrl } = await getUploadUrl(fileName);
+  try {
+    // Get presigned URL
+    const response = await fetch('/api/upload/s3', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+      }),
+    });
 
-  const xhr = new XMLHttpRequest();
-  
-  xhr.upload.onprogress = (event) => {
-    if (onProgress) {
-      onProgress({
-        uploaded: event.loaded,
-        total: event.total,
-        percentage: (event.loaded / event.total) * 100
-      });
+    if (!response.ok) {
+      throw new Error('Failed to get upload URL');
     }
-  };
 
-  return new Promise((resolve, reject) => {
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        resolve(fileUrl);
-      } else {
-        reject(new Error('Upload failed'));
+    const { url, fields, key } = await response.json();
+
+    // Create form data with signed fields
+    const formData = new FormData();
+    Object.entries(fields).forEach(([key, value]) => {
+      formData.append(key, value as string);
+    });
+    formData.append('file', file);
+
+    // Upload to S3
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+
+    // Track upload progress
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress({
+          percent: (event.loaded / event.total) * 100,
+          loaded: event.loaded,
+          total: event.total,
+        });
       }
     };
 
-    xhr.onerror = () => reject(new Error('Upload failed'));
+    // Return a promise that resolves with the file URL
+    return new Promise((resolve, reject) => {
+      xhr.onload = () => {
+        if (xhr.status === 204) {
+          resolve(`${url}/${key}`);
+        } else {
+          reject(new Error('Upload failed'));
+        }
+      };
 
-    xhr.open('POST', uploadUrl);
-    xhr.setRequestHeader('Authorization', authorizationToken);
-    xhr.setRequestHeader('X-Bz-File-Name', fileName);
-    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-    xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
-    xhr.send(file);
-  });
+      xhr.onerror = () => {
+        reject(new Error('Upload failed'));
+      };
+
+      xhr.send(formData);
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw error;
+  }
 }
