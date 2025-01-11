@@ -8,6 +8,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Configure route segment
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -20,29 +24,15 @@ export async function POST(request: NextRequest) {
         folder,
         upload_preset: 'ml_default',
       },
-      process.env.CLOUDINARY_API_SECRET!
+      process.env.CLOUDINARY_API_SECRET || ''
     );
 
-    return NextResponse.json({
-      signature,
-      timestamp,
-      cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-      apiKey: process.env.CLOUDINARY_API_KEY,
-    });
+    return NextResponse.json({ signature, timestamp });
   } catch (error) {
-    console.error('Upload API error:', error);
+    console.error('Error generating signature:', error);
     return NextResponse.json(
-      { error: 'Failed to process upload request' },
+      { error: 'Failed to generate signature' },
       { status: 500 }
     );
   }
 }
-
-// Configure max file size for the API route
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '500mb',
-    },
-  },
-};
