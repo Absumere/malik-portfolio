@@ -26,6 +26,16 @@ const nextConfig = {
     },
     instrumentationHook: true,
   },
+  webpack: (config, { isServer, nextRuntime }) => {
+    if (nextRuntime === 'edge') {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        crypto: false,
+        querystring: false,
+      };
+    }
+    return config;
+  },
   output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,

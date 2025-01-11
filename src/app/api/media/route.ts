@@ -1,74 +1,99 @@
-import { v2 as cloudinary } from 'cloudinary';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuth } from '@clerk/nextjs/server';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`;
+
+async function fetchFromCloudinary(resourceType: 'image' | 'video') {
+  const response = await fetch(
+    `${CLOUDINARY_URL}/resources/${resourceType}/upload?prefix=portfolio`,
+    {
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`
+        ).toString('base64')}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${resourceType}s from Cloudinary`);
+  }
+
+  const data = await response.json();
+  return data.resources.map((resource: any) => ({
+    id: resource.public_id,
+    url: resource.secure_url,
+    type: resourceType,
+    title: resource.context?.custom?.alt || '',
+    description: resource.context?.custom?.caption || '',
+    createdAt: resource.created_at,
+  }));
+}
 
 export async function GET() {
   try {
-    // Fetch both images and videos from Cloudinary
-    const [imageResults, videoResults] = await Promise.all([
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: 'portfolio',
-        resource_type: 'image',
-        max_results: 500,
-      }),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: 'portfolio',
-        resource_type: 'video',
-        max_results: 500,
-      }),
+    const [images, videos] = await Promise.all([
+      fetchFromCloudinary('image'),
+      fetchFromCloudinary('video'),
     ]);
 
-    // Combine and format the results
-    const media = [
-      ...imageResults.resources.map((resource: any) => ({
-        ...resource,
-        type: 'image',
-      })),
-      ...videoResults.resources.map((resource: any) => ({
-        ...resource,
-        type: 'video',
-      })),
-    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    // Combine and sort by creation date
+    const allMedia = [...images, ...videos].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
-    return NextResponse.json({ media });
+    return NextResponse.json(allMedia);
   } catch (error) {
     console.error('Error fetching media:', error);
-    return NextResponse.json({ error: 'Failed to fetch media' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch media' },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { publicId } = await request.json();
-    
+    const auth = getAuth(request);
+    const { userId } = auth;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const publicId = searchParams.get('id');
+
     if (!publicId) {
-      return NextResponse.json({ error: 'Public ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Public ID is required' },
+        { status: 400 }
+      );
     }
 
-    // Check if the file is an image or video
-    const resourceType = publicId.startsWith('video/') ? 'video' : 'image';
-    
-    // Delete the file from Cloudinary
-    const result = await cloudinary.uploader.destroy(publicId, {
-      resource_type: resourceType,
-    });
+    const response = await fetch(
+      `${CLOUDINARY_URL}/resources/image/upload/${publicId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Basic ${Buffer.from(
+            `${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`
+          ).toString('base64')}`,
+        },
+      }
+    );
 
-    if (result.result === 'ok') {
-      return NextResponse.json({ message: 'Media deleted successfully' });
-    } else {
-      throw new Error('Failed to delete media');
+    if (!response.ok) {
+      throw new Error('Failed to delete resource');
     }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting media:', error);
     return NextResponse.json(
