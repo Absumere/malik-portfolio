@@ -41,14 +41,13 @@ export async function uploadFile(
 ): Promise<string> {
   try {
     // Get presigned URL
-    const response = await fetch('/api/upload/s3', {
+    const response = await fetch('/api/upload/b2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         filename: file.name,
-        contentType: file.type,
       }),
     });
 
@@ -56,18 +55,15 @@ export async function uploadFile(
       throw new Error('Failed to get upload URL');
     }
 
-    const { url, fields, key } = await response.json();
+    const { uploadUrl, authorizationToken, fileUrl } = await response.json();
 
-    // Create form data with signed fields
-    const formData = new FormData();
-    Object.entries(fields).forEach(([key, value]) => {
-      formData.append(key, value as string);
-    });
-    formData.append('file', file);
-
-    // Upload to S3
+    // Upload to B2
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
+    xhr.open('POST', uploadUrl, true);
+    xhr.setRequestHeader('Authorization', authorizationToken);
+    xhr.setRequestHeader('X-Bz-File-Name', fileUrl.split('/').pop() || '');
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.setRequestHeader('X-Bz-Content-Sha1', 'do_not_verify');
 
     // Track upload progress
     xhr.upload.onprogress = (event) => {
@@ -83,8 +79,8 @@ export async function uploadFile(
     // Return a promise that resolves with the file URL
     return new Promise((resolve, reject) => {
       xhr.onload = () => {
-        if (xhr.status === 204) {
-          resolve(`${url}/${key}`);
+        if (xhr.status === 200) {
+          resolve(fileUrl);
         } else {
           reject(new Error('Upload failed'));
         }
@@ -94,7 +90,7 @@ export async function uploadFile(
         reject(new Error('Upload failed'));
       };
 
-      xhr.send(formData);
+      xhr.send(file);
     });
   } catch (error) {
     console.error('Upload error:', error);

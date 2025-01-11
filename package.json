@@ -28,7 +28,6 @@
     "@tailwindcss/typography": "^0.5.10",
     "@tremor/react": "^3.18.6",
     "axios": "^1.7.9",
-    "backblaze-b2": "^1.7.0",
     "chart.js": "^4.4.7",
     "cloudinary": "^2.5.1",
     "clsx": "^2.1.1",
