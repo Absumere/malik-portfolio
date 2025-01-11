@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import MediaViewer from './MediaViewer';
+import { useState } from 'react';
+import { MediaViewer } from './MediaViewer';
+import { Card, Title } from '@tremor/react';
 import { 
   FunnelIcon, 
   ArrowsUpDownIcon,
@@ -23,33 +23,15 @@ interface MediaItem {
 
 interface EnhancedGalleryProps {
   isAdmin?: boolean;
+  media: MediaItem[];
 }
 
-export function EnhancedGallery({ isAdmin = false }: EnhancedGalleryProps) {
-  const [media, setMedia] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export function EnhancedGallery({ isAdmin = false, media }: EnhancedGalleryProps) {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [viewerOpen, setViewerOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'images' | 'videos'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'size'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  useEffect(() => {
-    loadMedia();
-  }, []);
-
-  async function loadMedia() {
-    try {
-      const response = await fetch('/api/media');
-      if (!response.ok) throw new Error('Failed to fetch media');
-      const data = await response.json();
-      setMedia(data);
-    } catch (error) {
-      console.error('Error loading media:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const filteredAndSortedMedia = media
     .filter((item) => {
@@ -77,15 +59,11 @@ export function EnhancedGallery({ isAdmin = false }: EnhancedGalleryProps) {
     try {
       const response = await fetch(`/api/media/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete');
-      loadMedia();
+      // loadMedia();
     } catch (error) {
       console.error('Error deleting media:', error);
     }
   };
-
-  if (loading) {
-    return <div className="text-center py-8">Loading media...</div>;
-  }
 
   return (
     <div className="space-y-4">
@@ -126,34 +104,36 @@ export function EnhancedGallery({ isAdmin = false }: EnhancedGalleryProps) {
         </div>
       </div>
 
-      {/* Gallery Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <Title>Media Gallery</Title>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredAndSortedMedia.map((item) => (
-          <div
+          <Card
             key={item.id}
-            className="group relative aspect-square bg-gray-800 rounded-lg overflow-hidden"
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => {
+              setSelectedMedia(item);
+              setIsViewerOpen(true);
+            }}
           >
-            {item.type === 'image' ? (
-              <Image
-                src={item.url}
-                alt={item.title || ''}
-                fill
-                className="object-cover cursor-pointer transition-transform group-hover:scale-105"
-                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                onClick={() => {
-                  setSelectedMedia(item);
-                  setViewerOpen(true);
-                }}
-              />
-            ) : (
-              <iframe
-                src={item.url}
-                className="absolute inset-0 w-full h-full"
-                allow="autoplay; fullscreen; picture-in-picture"
-              />
+            <div className="aspect-video relative">
+              {item.type === 'image' ? (
+                <img
+                  src={item.url}
+                  alt={item.title || 'Gallery image'}
+                  className="object-cover w-full h-full rounded-lg"
+                />
+              ) : (
+                <video
+                  src={item.url}
+                  className="object-cover w-full h-full rounded-lg"
+                  muted
+                  playsInline
+                />
+              )}
+            </div>
+            {item.title && (
+              <p className="mt-2 text-sm font-medium">{item.title}</p>
             )}
-
-            {/* Overlay with actions */}
             {isAdmin && (
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <button
@@ -170,15 +150,14 @@ export function EnhancedGallery({ isAdmin = false }: EnhancedGalleryProps) {
                 </button>
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
 
-      {/* Full-size viewer */}
       {selectedMedia && (
         <MediaViewer
-          isOpen={viewerOpen}
-          onClose={() => setViewerOpen(false)}
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
           currentMedia={selectedMedia}
           allMedia={filteredAndSortedMedia}
         />

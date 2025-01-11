@@ -1,18 +1,21 @@
-export { default as TracingBeam } from './TracingBeam';
-export { default as SpectralWave } from './SpectralWave';
-export { default as TokenPurchaseModal } from './TokenPurchaseModal';
-export { default as AnimatedBorder } from './AnimatedBorder';
-export { default as BlurImage } from './BlurImage';
-export { default as ComingSoonOverlay } from './ComingSoonOverlay';
-export { default as FileUpload } from './FileUpload';
-export { default as GlitchText } from './GlitchText';
-export { default as GravityField } from './GravityField';
-export { default as ImageLoadingBar } from './ImageLoadingBar';
-export { default as LargeFileUpload } from './LargeFileUpload';
-export { default as LoadingSpinner } from './LoadingSpinner';
-export { default as MuxPlayer } from './MuxPlayer';
-export { default as ParticleOrb } from './ParticleOrb';
-export { default as ShimmerText } from './ShimmerText';
-export { default as SocialIcon } from './SocialIcon';
-export { default as StripePaymentForm } from './StripePaymentForm';
-export { default as Tabs } from './tabs';
+export { TracingBeam } from './TracingBeam';
+export { SpectralWave } from './SpectralWave';
+export { AnimatedBorder } from './AnimatedBorder';
+export { BlurImage } from './BlurImage';
+export { ComingSoonOverlay } from './ComingSoonOverlay';
+export { GlitchText } from './GlitchText';
+export { GravityField } from './GravityField';
+export { ImageLoadingBar } from './ImageLoadingBar';
+export { LoadingSpinner } from './LoadingSpinner';
+export { ParticleOrb } from './ParticleOrb';
+export { ShimmerText } from './ShimmerText';
+export { SocialIcon } from './SocialIcon';
+export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
+
+// Re-export Stripe components from the correct package
+export {
+  PaymentElement,
+  Elements,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js';
