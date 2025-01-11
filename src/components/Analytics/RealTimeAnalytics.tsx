@@ -1,6 +1,17 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { Card, Title, AreaChart, DonutChart, BarList } from '@tremor/react';
 import mixpanel from 'mixpanel-browser';
+
+// Initialize mixpanel
+if (typeof window !== 'undefined') {
+  mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || '', {
+    debug: process.env.NODE_ENV === 'development',
+    track_pageview: true,
+    persistence: 'localStorage'
+  });
+}
 
 interface RealTimeMetrics {
   activeUsers: number;
