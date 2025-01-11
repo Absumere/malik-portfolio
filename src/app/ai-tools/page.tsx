@@ -1,11 +1,10 @@
 'use client';
 
-import { SpectralWave } from '@/components/UI/SpectralWave';
+import { SpectralWave, TokenPurchaseModal } from '@/components/ui';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
-import TokenPurchaseModal from '@/components/UI/TokenPurchaseModal';
 import { motion } from 'framer-motion';
 import ScrollReset from '@/components/ScrollReset';
 

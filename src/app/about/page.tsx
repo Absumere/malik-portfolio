@@ -1,6 +1,6 @@
 'use client';
 
-import { TracingBeam } from '@/components/UI/TracingBeam';
+import { TracingBeam } from '@/components/ui';
 
 export default function AboutPage() {
   return (

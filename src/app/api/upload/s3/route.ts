@@ -4,10 +4,6 @@ import { nanoid } from 'nanoid';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
-// Configure route segment
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
-
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);

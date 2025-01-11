@@ -1,6 +1,6 @@
 'use client';
 
-import { SpectralWave } from "@/components/UI/SpectralWave";
+import { SpectralWave } from '@/components/ui';
 
 export default function SignInPage() {
   return (
