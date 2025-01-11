@@ -1,10 +1,14 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { NextRequest, NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
 });
 
 export async function GET() {
@@ -22,59 +26,49 @@ export async function GET() {
         prefix: 'portfolio',
         resource_type: 'video',
         max_results: 500,
-      })
+      }),
     ]);
 
-    // Combine and format results
+    // Combine and format the results
     const media = [
-      ...imageResults.resources.map(resource => ({
-        id: resource.public_id,
-        url: resource.secure_url,
+      ...imageResults.resources.map((resource: any) => ({
+        ...resource,
         type: 'image',
-        created_at: resource.created_at,
-        format: resource.format,
-        size: resource.bytes,
       })),
-      ...videoResults.resources.map(resource => ({
-        id: resource.public_id,
-        url: resource.secure_url,
+      ...videoResults.resources.map((resource: any) => ({
+        ...resource,
         type: 'video',
-        created_at: resource.created_at,
-        format: resource.format,
-        size: resource.bytes,
-      }))
-    ];
+      })),
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    return NextResponse.json(media);
+    return NextResponse.json({ media });
   } catch (error) {
     console.error('Error fetching media:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch media' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch media' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const publicId = searchParams.get('id');
-
+    const { publicId } = await request.json();
+    
     if (!publicId) {
-      return NextResponse.json(
-        { error: 'Public ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Public ID is required' }, { status: 400 });
     }
 
-    // Try to delete as both image and video
-    try {
-      await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
-    } catch {
-      await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
-    }
+    // Check if the file is an image or video
+    const resourceType = publicId.startsWith('video/') ? 'video' : 'image';
+    
+    // Delete the file from Cloudinary
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
 
-    return NextResponse.json({ success: true });
+    if (result.result === 'ok') {
+      return NextResponse.json({ message: 'Media deleted successfully' });
+    } else {
+      throw new Error('Failed to delete media');
+    }
   } catch (error) {
     console.error('Error deleting media:', error);
     return NextResponse.json(
