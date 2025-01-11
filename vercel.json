@@ -1,5 +1,15 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "buildCommand": "prisma generate && next build",
+  "functions": {
+    "src/app/api/**/*": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "PRISMA_GENERATE_DATAPROXY": "true"
+  }
 }
