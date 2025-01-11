@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
 import { nanoid } from 'nanoid';
 
-// Configure route segment
+// Keep edge runtime since we're not using NextAuth anymore
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +36,7 @@ async function generatePresignedUrl(key: string, contentType: string) {
 
   const policyBase64 = Buffer.from(JSON.stringify(policy)).toString('base64');
 
-  // Generate signature
+  // Generate signature using Web Crypto API
   const kDate = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(`AWS4${AWS_SECRET_ACCESS_KEY}`),
