@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const settings = await prisma.siteSettings.findFirst();
@@ -17,28 +20,45 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const data = await request.json();
+    
+    // Validate required fields
+    if (!data.siteName || !data.description) {
+      return NextResponse.json(
+        { error: 'Site name and description are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format if provided
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
     const settings = await prisma.siteSettings.upsert({
       where: { id: 1 },
       update: {
         siteName: data.siteName,
         description: data.description,
         email: data.email,
-        socialLinks: data.socialLinks,
-        maxStorageSize: data.maxStorageSize,
-        theme: data.theme,
-        analytics: data.analytics,
+        socialLinks: data.socialLinks || {},
+        theme: data.theme || 'dark',
+        maxStorageSize: data.maxStorageSize || 524288000, // 500MB default
+        analytics: data.analytics || {},
       },
       create: {
-        id: 1,
         siteName: data.siteName,
         description: data.description,
         email: data.email,
-        socialLinks: data.socialLinks,
-        maxStorageSize: data.maxStorageSize || 1024 * 1024 * 500, // 500MB default
+        socialLinks: data.socialLinks || {},
         theme: data.theme || 'dark',
+        maxStorageSize: data.maxStorageSize || 524288000,
         analytics: data.analytics || {},
       },
     });
+
     return NextResponse.json(settings);
   } catch (error) {
     console.error('Failed to update settings:', error);
