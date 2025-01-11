@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Card, Title, Text } from '@tremor/react';
+import { Card, Title, Text, Grid, Flex, Metric } from '@tremor/react';
 import {
   UsersIcon,
   EyeIcon,
