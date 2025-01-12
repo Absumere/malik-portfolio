@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['cdn.malikarbab.de', 'res.cloudinary.com', 's3.eu-central-003.backblazeb2.com'],
+    domains: ['s3.eu-central-003.backblazeb2.com', 'cdn.malikarbab.de', 'res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -19,6 +19,14 @@ const nextConfig = {
         pathname: '/**',
       }
     ],
+  },
+  env: {
+    B2_APPLICATION_KEY_ID: process.env.B2_APPLICATION_KEY_ID,
+    B2_APPLICATION_KEY: process.env.B2_APPLICATION_KEY,
+    B2_BUCKET_NAME: process.env.B2_BUCKET_NAME,
+    B2_BUCKET_ID: process.env.B2_BUCKET_ID,
+    B2_ENDPOINT: process.env.B2_ENDPOINT,
+    B2_CLOUDFLARE_URL: process.env.B2_CLOUDFLARE_URL,
   },
   typescript: {
     ignoreBuildErrors: true,
