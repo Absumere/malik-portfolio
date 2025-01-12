@@ -23,46 +23,6 @@ const getEnvVar = (name: string): string => {
   return value;
 };
 
-let cachedAuth: B2AuthResponse | null = null;
-let authExpiration = 0;
-
-export async function getB2Auth(): Promise<B2AuthResponse> {
-  try {
-    // Check if we have a valid cached auth
-    const now = Date.now();
-    if (cachedAuth && now < authExpiration) {
-      return cachedAuth;
-    }
-
-    const applicationKeyId = getEnvVar('B2_APPLICATION_KEY_ID');
-    const applicationKey = getEnvVar('B2_APPLICATION_KEY');
-    const authString = Buffer.from(`${applicationKeyId}:${applicationKey}`).toString('base64');
-
-    console.log('Getting new B2 auth token...');
-    const response = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-      headers: {
-        Authorization: `Basic ${authString}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('B2 auth error:', error);
-      throw new Error(`Failed to authenticate with B2: ${error}`);
-    }
-
-    const auth = await response.json();
-    cachedAuth = auth;
-    authExpiration = now + (23 * 60 * 60 * 1000); // Cache for 23 hours
-    console.log('Got new B2 auth token');
-
-    return auth;
-  } catch (error) {
-    console.error('B2 auth error:', error);
-    throw error;
-  }
-}
-
 export async function getB2DownloadUrl(fileName: string): Promise<string> {
   try {
     const cloudflareUrl = getEnvVar('B2_CLOUDFLARE_URL');
@@ -75,20 +35,20 @@ export async function getB2DownloadUrl(fileName: string): Promise<string> {
 
 export async function listB2Files(): Promise<B2FileInfo[]> {
   try {
-    const auth = await getB2Auth();
-    const bucketId = getEnvVar('B2_BUCKET_ID');
+    const endpoint = getEnvVar('B2_ENDPOINT');
+    const bucketName = getEnvVar('B2_BUCKET_NAME');
+    const applicationKeyId = getEnvVar('B2_APPLICATION_KEY_ID');
+    const applicationKey = getEnvVar('B2_APPLICATION_KEY');
 
-    console.log('Listing files...');
-    const response = await fetch(`${auth.apiUrl}/b2api/v2/b2_list_file_names`, {
-      method: 'POST',
+    // Create the URL for listing objects
+    const url = `${endpoint}/${bucketName}?list-type=2`;
+    
+    console.log('Listing files from bucket:', bucketName);
+    
+    const response = await fetch(url, {
       headers: {
-        Authorization: auth.authorizationToken,
-        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`${applicationKeyId}:${applicationKey}`).toString('base64')}`,
       },
-      body: JSON.stringify({
-        bucketId,
-        maxFileCount: 1000,
-      }),
     });
 
     if (!response.ok) {
@@ -97,21 +57,33 @@ export async function listB2Files(): Promise<B2FileInfo[]> {
       throw new Error(`Failed to list files: ${error}`);
     }
 
-    const data = await response.json();
-    console.log(`Found ${data.files.length} files`);
+    const text = await response.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(text, 'text/xml');
+    
+    const contents = xmlDoc.getElementsByTagName('Contents');
+    const files: B2FileInfo[] = [];
 
-    return Promise.all(
-      data.files.map(async (file: any) => {
-        const url = await getB2DownloadUrl(file.fileName);
-        return {
-          fileName: file.fileName,
-          contentType: file.contentType || 'application/octet-stream',
-          uploadTimestamp: file.uploadTimestamp * 1000,
-          fileId: file.fileId,
+    for (let i = 0; i < contents.length; i++) {
+      const content = contents[i];
+      const key = content.getElementsByTagName('Key')[0]?.textContent;
+      const lastModified = content.getElementsByTagName('LastModified')[0]?.textContent;
+      const etag = content.getElementsByTagName('ETag')[0]?.textContent;
+
+      if (key) {
+        const url = await getB2DownloadUrl(key);
+        files.push({
+          fileName: key,
+          contentType: key.split('.').pop()?.toLowerCase() || 'application/octet-stream',
+          uploadTimestamp: lastModified ? new Date(lastModified).getTime() : Date.now(),
+          fileId: etag?.replace(/['"]/g, '') || key,
           url,
-        };
-      })
-    );
+        });
+      }
+    }
+
+    console.log(`Found ${files.length} files`);
+    return files.sort((a, b) => b.uploadTimestamp - a.uploadTimestamp);
   } catch (error) {
     console.error('Error listing files:', error);
     throw error;
