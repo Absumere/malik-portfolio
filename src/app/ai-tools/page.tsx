@@ -142,7 +142,7 @@ function AiToolsContent() {
               <div className="flex justify-between items-center">
                 <div>
                   <div className="text-sm text-gray-400">Cost</div>
-                  <div className="font-medium">{tool.tokenCost} tokens (${tool.tokenCost * tool.pricePerToken})</div>
+                  <div className="font-medium">{tool.tokenCost} tokens</div>
                 </div>
                 <button
                   disabled={!user || !!tool.comingSoon}

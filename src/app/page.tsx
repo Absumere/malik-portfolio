@@ -35,7 +35,7 @@ export default function Home() {
         </div>
 
         {/* Spline Scene */}
-        <div className="absolute inset-x-0 top-[20%] h-[90vh] z-10">
+        <div className="absolute inset-x-0 top-[30%] h-[90vh] z-10">
           <SplineViewer 
             url="https://prod.spline.design/JSRfrdvgsrn49EQP/scene.splinecode"
             className="w-full h-full"
@@ -43,17 +43,17 @@ export default function Home() {
         </div>
       </div>
 
-      <main className="flex min-h-screen flex-col items-center justify-start p-4 md:p-8">
-        <div className="w-full max-w-5xl mt-8 mb-12">
+      <div className="relative h-screen">
+        <div className="absolute inset-0">
           <SplineViewer 
             url="https://prod.spline.design/6EqZ6HwgTfB8LEy5/scene.splinecode"
             className="w-full h-full"
           />
         </div>
-      </main>
+      </div>
 
       {/* Gradient transition */}
-      <div className="h-24 bg-gradient-to-b from-transparent to-black/80" />
+      <div className="h-12 bg-gradient-to-b from-transparent to-black/80" />
     </div>
   );
 }
