@@ -4,8 +4,10 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { cn } from "@/lib/utils";
 
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -55,15 +57,17 @@ export default function RootLayout({
           "overscroll-none" // Prevents bounce effect on iOS
         )}
       >
-        <ClerkProvider>
-          <div className="flex min-h-screen flex-col">
-            <Navigation />
-            <main className="flex-1 pt-16 overflow-x-hidden">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </ClerkProvider>
+        <ConvexProvider client={convex}>
+          <ClerkProvider>
+            <div className="flex min-h-screen flex-col">
+              <Navigation />
+              <main className="flex-1 pt-16 overflow-x-hidden">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </ClerkProvider>
+        </ConvexProvider>
       </body>
     </html>
   );
