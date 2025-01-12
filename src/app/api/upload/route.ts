@@ -6,20 +6,21 @@ export const dynamic = 'force-dynamic';
 
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`;
 
-function generateSignature(params: Record<string, any>) {
+async function generateSignature(params: Record<string, any>) {
   const timestamp = Math.round(new Date().getTime() / 1000);
   const toSign = Object.entries({ ...params, timestamp })
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}=${value}`)
     .join('&') + process.env.CLOUDINARY_API_SECRET;
 
-  return {
-    signature: require('crypto')
-      .createHash('sha256')
-      .update(toSign)
-      .digest('hex'),
-    timestamp,
-  };
+  // Use Web Crypto API instead of Node's crypto
+  const encoder = new TextEncoder();
+  const data = encoder.encode(toSign);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+  return { signature, timestamp };
 }
 
 export async function POST(request: NextRequest) {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
       upload_preset: 'ml_default',
     };
 
-    const { signature, timestamp } = generateSignature(params);
+    const { signature, timestamp } = await generateSignature(params);
 
     // Create form data for upload
     const formData = new FormData();
