@@ -1,3 +1,6 @@
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
 interface B2AuthResponse {
   apiUrl: string;
   authorizationToken: string;
@@ -9,6 +12,7 @@ interface B2FileInfo {
   contentType: string;
   uploadTimestamp: number;
   fileId: string;
+  url: string;
 }
 
 const getEnvVar = (name: string): string => {
@@ -19,55 +23,41 @@ const getEnvVar = (name: string): string => {
   return value;
 };
 
-let cachedAuth: B2AuthResponse | null = null;
-let authExpiration = 0;
+let s3Client: S3Client | null = null;
 
-export async function getB2Auth(): Promise<B2AuthResponse> {
-  try {
-    // Check if we have a valid cached auth
-    const now = Date.now();
-    if (cachedAuth && now < authExpiration) {
-      return cachedAuth;
-    }
-
-    const applicationKeyId = getEnvVar('B2_APPLICATION_KEY_ID');
-    const applicationKey = getEnvVar('B2_APPLICATION_KEY');
-
-    const authString = Buffer.from(`${applicationKeyId}:${applicationKey}`).toString('base64');
-
-    const response = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${authString}`,
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('B2 auth error:', error);
-      throw new Error(`Failed to authenticate with B2: ${error}`);
-    }
-
-    const auth = await response.json();
-    
-    // Cache the auth response for 23 hours (token typically valid for 24 hours)
-    cachedAuth = auth;
-    authExpiration = now + (23 * 60 * 60 * 1000);
-
-    return auth;
-  } catch (error) {
-    console.error('B2 auth error:', error);
-    throw error;
+function getS3Client(): S3Client {
+  if (s3Client) {
+    return s3Client;
   }
+
+  const endpoint = getEnvVar('B2_ENDPOINT');
+  const applicationKeyId = getEnvVar('B2_APPLICATION_KEY_ID');
+  const applicationKey = getEnvVar('B2_APPLICATION_KEY');
+
+  s3Client = new S3Client({
+    endpoint,
+    region: 'eu-central-003',
+    credentials: {
+      accessKeyId: applicationKeyId,
+      secretAccessKey: applicationKey,
+    },
+    forcePathStyle: true,
+  });
+
+  return s3Client;
 }
 
-export async function getB2DownloadUrl(fileName: string): Promise<string> {
+export async function getB2DownloadUrl(key: string): Promise<string> {
   try {
+    const client = getS3Client();
     const bucketName = getEnvVar('B2_BUCKET_NAME');
-    // Use the endpoint from env
-    const endpoint = getEnvVar('B2_ENDPOINT');
-    return `${endpoint}/${bucketName}/${encodeURIComponent(fileName)}`;
+
+    const command = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+
+    return getSignedUrl(client, command, { expiresIn: 3600 });
   } catch (error) {
     console.error('Error getting download URL:', error);
     throw error;
@@ -76,41 +66,51 @@ export async function getB2DownloadUrl(fileName: string): Promise<string> {
 
 export async function listB2Files(): Promise<B2FileInfo[]> {
   try {
-    const auth = await getB2Auth();
-    const bucketId = getEnvVar('B2_BUCKET_ID');
+    const client = getS3Client();
+    const bucketName = getEnvVar('B2_BUCKET_NAME');
 
-    console.log('Listing files with auth token:', auth.authorizationToken.substring(0, 10) + '...');
-    console.log('Using bucket ID:', bucketId);
+    console.log('Listing files from bucket:', bucketName);
 
-    const response = await fetch(`${auth.apiUrl}/b2api/v2/b2_list_file_names`, {
-      method: 'POST',
-      headers: {
-        'Authorization': auth.authorizationToken,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        bucketId: bucketId,
-        maxFileCount: 1000,
-      }),
+    const command = new ListObjectsV2Command({
+      Bucket: bucketName,
+      MaxKeys: 1000,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('B2 list files error response:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Failed to list files: ${errorText}`);
+    const response = await client.send(command);
+    
+    if (!response.Contents) {
+      console.log('No files found in bucket');
+      return [];
     }
 
-    const data = await response.json();
-    return data.files.map((file: any) => ({
-      fileName: file.fileName,
-      contentType: file.contentType || 'application/octet-stream',
-      uploadTimestamp: file.uploadTimestamp * 1000, // Convert to milliseconds
-      fileId: file.fileId,
-    }));
+    console.log(`Found ${response.Contents.length} files`);
+
+    // Get signed URLs for all files
+    const filesWithUrls = await Promise.all(
+      response.Contents.map(async (file) => {
+        if (!file.Key) return null;
+
+        try {
+          const url = await getB2DownloadUrl(file.Key);
+          return {
+            fileName: file.Key,
+            contentType: file.Key.split('.').pop()?.toLowerCase() || 'application/octet-stream',
+            uploadTimestamp: file.LastModified?.getTime() || 0,
+            fileId: file.ETag?.replace(/['"]/g, '') || file.Key,
+            url,
+          };
+        } catch (error) {
+          console.error(`Error getting URL for file ${file.Key}:`, error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out nulls and sort by timestamp
+    return filesWithUrls
+      .filter((file): file is NonNullable<typeof file> => file !== null)
+      .sort((a, b) => b.uploadTimestamp - a.uploadTimestamp);
+
   } catch (error) {
     console.error('Error listing files:', error);
     throw error;

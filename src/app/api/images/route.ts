@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listB2Files, getB2DownloadUrl } from '@/utils/b2';
+import { listB2Files } from '@/utils/b2';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -20,42 +20,16 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('Fetching B2 files...');
-    
-    // List files from B2
     const files = await listB2Files();
-    console.log(`Found ${files.length} files`);
-    
-    // Get download URLs for each file
-    const filesWithUrls = await Promise.all(
-      files.map(async (file) => {
-        try {
-          const url = await getB2DownloadUrl(file.fileName);
-          return {
-            ...file,
-            url,
-          };
-        } catch (error) {
-          console.error('Error getting download URL:', error);
-          return null;
-        }
-      })
-    );
+    console.log(`Returning ${files.length} files`);
 
-    // Filter out any failed URLs and sort by timestamp
-    const validFiles = filesWithUrls
-      .filter((file): file is NonNullable<typeof file> => file !== null)
-      .sort((a, b) => b.uploadTimestamp - a.uploadTimestamp);
-
-    console.log(`Returning ${validFiles.length} valid files`);
-
-    return NextResponse.json(validFiles, { 
+    return NextResponse.json(files, { 
       headers,
       status: 200
     });
   } catch (error: any) {
     console.error('API Error:', error);
     
-    // Return a more detailed error response
     return NextResponse.json(
       { 
         error: 'Failed to fetch files', 
@@ -63,7 +37,7 @@ export async function GET(request: NextRequest) {
         timestamp: new Date().toISOString()
       },
       { 
-        status: error.message.includes('unauthorized') ? 401 : 500,
+        status: error.message.includes('Access Denied') ? 403 : 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-store'
