@@ -5,6 +5,7 @@ export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`;
+const CDN_URL = 'https://cdn.malikarbab.de';
 
 async function fetchFromCloudinary(resourceType: 'image' | 'video') {
   // Use btoa for base64 encoding in Edge runtime
@@ -24,7 +25,13 @@ async function fetchFromCloudinary(resourceType: 'image' | 'video') {
   }
 
   const data = await response.json();
-  return data.resources;
+  return data.resources.map((resource: any) => ({
+    ...resource,
+    secure_url: resource.secure_url.replace(
+      's3.eu-central-003.backblazeb2.com/malikarbab-storage',
+      'cdn.malikarbab.de'
+    )
+  }));
 }
 
 export async function GET() {

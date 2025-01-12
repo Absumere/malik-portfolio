@@ -82,10 +82,16 @@ export async function POST(request: NextRequest) {
 
     const result = await uploadResponse.json();
 
+    // Replace B2 URL with CDN URL
+    const cdnUrl = result.secure_url.replace(
+      's3.eu-central-003.backblazeb2.com/malikarbab-storage',
+      'cdn.malikarbab.de'
+    );
+
     return NextResponse.json({
+      success: true,
+      url: cdnUrl,
       public_id: result.public_id,
-      url: result.secure_url,
-      resource_type: result.resource_type,
     });
   } catch (error) {
     console.error('Upload error:', error);
