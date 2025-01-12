@@ -4,6 +4,12 @@ import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
+const generateCdnUrl = (key: string) => {
+  // Ensure the key is properly encoded
+  const encodedKey = encodeURIComponent(key).replace(/%2F/g, '/');
+  return `https://cdn.malikarbab.de/${encodedKey}`;
+};
+
 async function listFiles() {
   try {
     if (!process.env.B2_APPLICATION_KEY_ID || !process.env.B2_APPLICATION_KEY || !process.env.B2_BUCKET_NAME) {
@@ -33,13 +39,16 @@ async function listFiles() {
     const response = await s3Client.send(command);
     const files = response.Contents || [];
 
-    return files.map(file => ({
-      fileName: file.Key || '',
-      url: `https://cdn.malikarbab.de/${file.Key}`,
-      contentType: file.Key?.split('.').pop()?.toLowerCase() || '',
-      uploadTimestamp: file.LastModified?.getTime() || 0,
-      public_id: file.Key || ''
-    }));
+    return files.map(file => {
+      const key = file.Key || '';
+      return {
+        fileName: key,
+        url: generateCdnUrl(key),
+        contentType: key.split('.').pop()?.toLowerCase() || '',
+        uploadTimestamp: file.LastModified?.getTime() || 0,
+        public_id: key
+      };
+    });
 
   } catch (error) {
     console.error('Error listing files:', error);
@@ -54,6 +63,7 @@ export async function GET(request: NextRequest) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=60'
     });
 
     // Handle preflight requests
@@ -62,12 +72,21 @@ export async function GET(request: NextRequest) {
     }
 
     const files = await listFiles();
-    return NextResponse.json(files, { headers });
+    return NextResponse.json(files, { 
+      headers,
+      status: 200
+    });
   } catch (error: any) {
     console.error('API Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch files', details: error.message },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-store'
+        }
+      }
     );
   }
 }

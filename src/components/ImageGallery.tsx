@@ -18,6 +18,13 @@ export default function ImageGallery() {
   const [error, setError] = useState<string | null>(null);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
+  const processImageUrl = (url: string) => {
+    // Convert URL to use CDN domain and ensure proper encoding
+    return url
+      .replace('https://www.malikarbab.de/', 'https://cdn.malikarbab.de/')
+      .replace(/\s+/g, '%20');
+  };
+
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -30,13 +37,17 @@ export default function ImageGallery() {
         console.log('API Response:', data);
         
         if (Array.isArray(data)) {
-          // Sort images by size to load smaller ones first
-          const sortedImages = [...data].sort((a, b) => {
-            const sizeA = Number(a.fileName.split('MB')[0]) || 0;
-            const sizeB = Number(b.fileName.split('MB')[0]) || 0;
-            return sizeA - sizeB;
-          });
-          console.log('Sorted Images:', sortedImages);
+          // Process URLs and sort images
+          const processedImages = data.map(img => ({
+            ...img,
+            url: processImageUrl(img.url)
+          }));
+          
+          const sortedImages = processedImages.sort((a, b) => 
+            b.uploadTimestamp - a.uploadTimestamp
+          );
+          
+          console.log('Processed Images:', sortedImages);
           setImages(sortedImages);
         } else {
           throw new Error('Invalid data format');
@@ -105,7 +116,7 @@ export default function ImageGallery() {
               </div>
               <Image
                 src={image.url}
-                alt=""
+                alt={image.fileName}
                 fill
                 className="object-cover transition-opacity duration-300"
                 style={{ opacity: loadedImages.has(image.url) ? 1 : 0 }}
@@ -123,6 +134,11 @@ export default function ImageGallery() {
                   const parent = target.parentElement;
                   if (parent) {
                     parent.classList.add('bg-[#331111]');
+                    // Add error message
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'absolute inset-0 flex items-center justify-center text-red-500 text-sm';
+                    errorMsg.textContent = 'Failed to load image';
+                    parent.appendChild(errorMsg);
                   }
                 }}
               />
@@ -150,37 +166,29 @@ export default function ImageGallery() {
             <Image
               src={selectedImage}
               alt=""
-              width={1920}
-              height={1080}
-              className="object-contain max-h-[90vh] w-auto transition-opacity duration-300"
+              fill
+              className="object-contain"
               style={{ opacity: loadedImages.has(selectedImage) ? 1 : 0 }}
-              priority={true}
+              sizes="100vw"
+              priority
               onLoadingComplete={() => {
                 setLoadedImages(prev => new Set(prev).add(selectedImage));
               }}
-            />
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedImage(null);
+              onError={(e) => {
+                console.error('Lightbox image load error:', selectedImage);
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.classList.add('bg-[#331111]');
+                  // Add error message
+                  const errorMsg = document.createElement('div');
+                  errorMsg.className = 'absolute inset-0 flex items-center justify-center text-red-500 text-sm';
+                  errorMsg.textContent = 'Failed to load image';
+                  parent.appendChild(errorMsg);
+                }
               }}
-              className="absolute top-4 right-4 text-white/75 hover:text-white transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+            />
           </div>
         </div>
       )}
