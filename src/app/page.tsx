@@ -44,21 +44,11 @@ export default function Home() {
       </div>
 
       <main className="flex min-h-screen flex-col items-center justify-start p-4 md:p-8">
-        <div className="w-full max-w-5xl">
-          <h1 className="text-4xl font-bold mb-4 text-center">Welcome to My Portfolio</h1>
-          <p className="text-xl mb-8 text-center">Explore my work in AI, web development, and creative projects.</p>
-        </div>
-        
         <div className="w-full max-w-5xl mt-8 mb-12">
           <SplineViewer 
             url="https://prod.spline.design/6EqZ6HwgTfB8LEy5/scene.splinecode"
             className="w-full h-full"
           />
-        </div>
-
-        <div className="w-full max-w-5xl mb-8">
-          <h2 className="text-3xl font-semibold mb-4">Featured Projects</h2>
-          {/* Featured projects content */}
         </div>
       </main>
 

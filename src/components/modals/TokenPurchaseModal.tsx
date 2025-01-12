@@ -28,8 +28,8 @@ export function TokenPurchaseModal({
   const handlePurchase = async () => {
     setIsProcessing(true);
     try {
-      await purchaseTokens({ amount: quantity * 10 }); // 10 tokens per purchase
-      toast.success(`Successfully purchased ${quantity * 10} tokens!`);
+      await purchaseTokens({ amount: quantity }); // 1 token per purchase
+      toast.success(`Successfully purchased ${quantity} tokens!`);
       onClose();
     } catch (error) {
       console.error('Failed to purchase tokens:', error);
@@ -84,7 +84,7 @@ export function TokenPurchaseModal({
 
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Quantity (10 tokens per purchase)
+                    Quantity (1 token per purchase)
                   </label>
                   <input
                     type="number"
@@ -97,7 +97,7 @@ export function TokenPurchaseModal({
 
                 <div className="mt-4">
                   <p className="text-gray-400 mb-2">
-                    Total Cost: ${quantity * 0.99}
+                    Total Cost: ${(quantity * 0.99).toFixed(2)}
                   </p>
                 </div>
 
