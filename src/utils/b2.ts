@@ -1,4 +1,4 @@
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 interface B2AuthResponse {
@@ -23,10 +23,42 @@ const getEnvVar = (name: string): string => {
   return value;
 };
 
-export async function getB2DownloadUrl(fileName: string): Promise<string> {
+let s3Client: S3Client | null = null;
+
+function getS3Client(): S3Client {
+  if (s3Client) {
+    return s3Client;
+  }
+
+  const endpoint = getEnvVar('B2_ENDPOINT');
+  const applicationKeyId = getEnvVar('B2_APPLICATION_KEY_ID');
+  const applicationKey = getEnvVar('B2_APPLICATION_KEY');
+
+  s3Client = new S3Client({
+    endpoint,
+    region: 'eu-central-003',
+    credentials: {
+      accessKeyId: applicationKeyId,
+      secretAccessKey: applicationKey,
+    },
+    forcePathStyle: true,
+  });
+
+  return s3Client;
+}
+
+export async function getB2DownloadUrl(key: string): Promise<string> {
   try {
-    const cloudflareUrl = getEnvVar('B2_CLOUDFLARE_URL');
-    return `${cloudflareUrl}/${encodeURIComponent(fileName)}`;
+    const client = getS3Client();
+    const bucketName = getEnvVar('B2_BUCKET_NAME');
+
+    const command = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+
+    // Get a signed URL that expires in 1 hour
+    return getSignedUrl(client, command, { expiresIn: 3600 });
   } catch (error) {
     console.error('Error getting download URL:', error);
     throw error;
