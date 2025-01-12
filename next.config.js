@@ -1,11 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['s3.eu-central-003.backblazeb2.com', 'cdn.malikarbab.de', 'res.cloudinary.com'],
+    domains: ['s3.eu-central-003.backblazeb2.com', 'res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'cdn.malikarbab.de',
+        port: '',
         pathname: '/**',
       },
       {
