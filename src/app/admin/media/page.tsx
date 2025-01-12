@@ -1,14 +1,33 @@
 'use client';
 
+import { Suspense } from 'react';
 import { EnhancedGallery } from '@/components/gallery/EnhancedGallery';
 import { MediaUpload } from '@/components/upload/MediaUpload';
 import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
-export default function MediaManagementPage() {
+function MediaContent() {
   const [refreshGallery, setRefreshGallery] = useState(0);
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  if (isLoading) {
+    return (
+      <div className="bg-black p-8 flex items-center justify-center min-h-screen">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user?.isAdmin) {
+    if (typeof window !== 'undefined') {
+      router.push('/');
+    }
+    return null;
+  }
 
   const handleUploadComplete = () => {
-    // Trigger gallery refresh
     setRefreshGallery(prev => prev + 1);
   };
 
@@ -21,7 +40,6 @@ export default function MediaManagementPage() {
         </p>
       </div>
 
-      {/* Upload Section */}
       <div className="bg-black/80 rounded-lg p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Upload Media</h2>
         <MediaUpload
@@ -32,11 +50,22 @@ export default function MediaManagementPage() {
         />
       </div>
 
-      {/* Gallery Section */}
       <div className="bg-black/80 rounded-lg p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Media Gallery</h2>
         <EnhancedGallery key={refreshGallery} isAdmin={true} />
       </div>
     </div>
+  );
+}
+
+export default function MediaManagementPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-black p-8 flex items-center justify-center min-h-screen">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <MediaContent />
+    </Suspense>
   );
 }

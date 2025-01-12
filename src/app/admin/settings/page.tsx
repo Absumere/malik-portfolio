@@ -1,13 +1,17 @@
 'use client';
 
+import { Suspense } from 'react';
 import { Card, Title, Text, Button, TextInput, Select, SelectItem } from '@tremor/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
 
-export default function SettingsPage() {
+function SettingsContent() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     siteName: '',
@@ -19,38 +23,47 @@ export default function SettingsPage() {
       linkedin: '',
       instagram: '',
     },
+    theme: 'dark',
+    language: 'en',
   });
 
-  // Fetch settings from Convex
-  const userSettings = useQuery(api.users.getSettings);
-  const updateSettings = useMutation(api.users.updateSettings);
+  const existingSettings = useQuery(api.settings.get);
+  const updateSettings = useMutation(api.settings.update);
 
   useEffect(() => {
-    if (userSettings) {
-      setSettings({
-        siteName: userSettings.siteName || '',
-        description: userSettings.description || '',
-        email: userSettings.email || '',
-        socialLinks: userSettings.socialLinks || {
-          twitter: '',
-          github: '',
-          linkedin: '',
-          instagram: '',
-        },
-      });
+    if (existingSettings) {
+      setSettings(existingSettings);
     }
-  }, [userSettings]);
+  }, [existingSettings]);
 
-  const handleSave = async () => {
+  if (isLoading) {
+    return (
+      <div className="bg-black p-8 flex items-center justify-center min-h-screen">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user?.isAdmin) {
+    if (typeof window !== 'undefined') {
+      router.push('/');
+    }
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setSaving(true);
+
     try {
       await updateSettings(settings);
-      toast.success('Settings saved successfully');
+      toast.success('Settings updated successfully');
     } catch (error) {
-      console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      console.error('Failed to update settings:', error);
+      toast.error('Failed to update settings');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   return (
@@ -132,10 +145,43 @@ export default function SettingsPage() {
           </div>
         </Card>
 
+        {/* Theme and Language */}
+        <Card className="bg-black border-white/10">
+          <h2 className="text-xl font-semibold text-white mb-6">Theme and Language</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">
+                Theme
+              </label>
+              <Select
+                value={settings.theme}
+                onValueChange={(value) => setSettings({ ...settings, theme: value })}
+              >
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">
+                Language
+              </label>
+              <Select
+                value={settings.language}
+                onValueChange={(value) => setSettings({ ...settings, language: value })}
+              >
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Spanish</SelectItem>
+                <SelectItem value="fr">French</SelectItem>
+              </Select>
+            </div>
+          </div>
+        </Card>
+
         {/* Save Button */}
         <div className="flex justify-end">
           <Button
-            onClick={handleSave}
+            onClick={handleSubmit}
             disabled={saving}
             className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -144,5 +190,17 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-black p-8 flex items-center justify-center min-h-screen">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
   );
 }

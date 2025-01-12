@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -12,9 +12,17 @@ export default function Profile() {
   const updateProfile = useMutation(api.users.updateUserProfile);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [bio, setBio] = useState(user?.bio || '');
-  const [socialLinks, setSocialLinks] = useState(user?.socialLinks || []);
-  const [preferences, setPreferences] = useState(user?.preferences || {});
+  const [bio, setBio] = useState('');
+  const [socialLinks, setSocialLinks] = useState([]);
+  const [preferences, setPreferences] = useState({});
+
+  useEffect(() => {
+    if (user) {
+      setBio(user.bio || '');
+      setSocialLinks(user.socialLinks || []);
+      setPreferences(user.preferences || {});
+    }
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -25,21 +33,24 @@ export default function Profile() {
   }
 
   if (!user) {
-    router.push('/sign-in');
+    if (typeof window !== 'undefined') {
+      router.push('/sign-in');
+    }
     return null;
   }
 
   const handleUpdateProfile = async () => {
-    if (!user._id) return;
-
-    await updateProfile({
-      userId: user._id,
-      bio,
-      socialLinks,
-      preferences,
-    });
-
-    setIsEditing(false);
+    try {
+      await updateProfile({
+        userId: user._id,
+        bio,
+        socialLinks,
+        preferences,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    }
   };
 
   return (
