@@ -15,7 +15,8 @@ type Tool = {
   category: 'generative-ai' | 'deepfake';
   categoryLabel: string;
   description: string;
-  cost: number;
+  tokenCost: number;
+  pricePerToken: number;
   comingSoon?: boolean;
 };
 
@@ -26,7 +27,8 @@ const tools: Tool[] = [
     category: 'generative-ai',
     categoryLabel: 'Generative AI',
     description: 'Create high-quality images from text descriptions using state-of-the-art AI models. Supports various styles and advanced parameters.',
-    cost: 10,
+    tokenCost: 1,
+    pricePerToken: 0.50,
   },
   {
     id: 'deepfake-studio',
@@ -34,7 +36,8 @@ const tools: Tool[] = [
     category: 'deepfake',
     categoryLabel: 'Deepfake',
     description: 'Professional face swapping and manipulation tool with ethical guidelines and watermarking. For educational and entertainment purposes only.',
-    cost: 20,
+    tokenCost: 2,
+    pricePerToken: 0.50,
   },
 ];
 
@@ -56,11 +59,14 @@ function AiToolsContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="mb-8 text-center"
         >
           <h1 className="text-4xl font-bold mb-4">AI Tools</h1>
-          <p className="text-xl text-gray-400">
-            Transform your creative process with our AI-powered tools
+          <p className="text-xl text-gray-300">
+            Explore our collection of AI-powered tools
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            1 Token = $0.50
           </p>
         </motion.div>
 
@@ -136,7 +142,7 @@ function AiToolsContent() {
               <div className="flex justify-between items-center">
                 <div>
                   <div className="text-sm text-gray-400">Cost</div>
-                  <div className="font-medium">{tool.cost} tokens</div>
+                  <div className="font-medium">{tool.tokenCost} tokens (${tool.tokenCost * tool.pricePerToken})</div>
                 </div>
                 <button
                   disabled={!user || !!tool.comingSoon}

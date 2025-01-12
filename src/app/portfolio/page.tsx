@@ -13,7 +13,7 @@ interface B2Image {
 }
 
 export default function PortfolioPage() {
-  const [activeTab, setActiveTab] = useState('images');
+  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('videos');
   const [images, setImages] = useState<B2Image[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

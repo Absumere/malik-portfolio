@@ -82,3 +82,70 @@ body {
 .button-glow:hover::after {
   transform: rotate(45deg) translate(50%, 50%);
 }
+
+/* Mobile Optimizations */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Prevent pull-to-refresh on mobile */
+html, body {
+  overscroll-behavior-y: none;
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 768px) {
+  button, a {
+    @apply min-h-[44px] min-w-[44px];
+    touch-action: manipulation;
+  }
+
+  input, select, textarea {
+    @apply text-base;
+    font-size: 16px !important; /* Prevents zoom on focus in iOS */
+  }
+}
+
+/* Smooth scrolling, but not on iOS */
+@media not all and (pointer: coarse) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Hide scrollbars but keep functionality */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Better image rendering */
+img {
+  -webkit-backface-visibility: hidden;
+  -ms-transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Disable text selection where needed */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
