@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
+
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 async function listFiles() {
   try {
@@ -47,56 +49,34 @@ async function listFiles() {
       isTruncated: response.IsTruncated
     });
 
+    if (response.Contents && response.Contents.length > 0) {
+      console.log('First file URL:', `https://cdn.malikarbab.de/${response.Contents[0].Key}`);
+    }
+
     const files = response.Contents || [];
-
-    // Generate signed URLs for each file
-    const transformedFiles = await Promise.all(files.map(async file => {
-      const getObjectCommand = new GetObjectCommand({
-        Bucket: process.env.B2_BUCKET_NAME,
-        Key: file.Key,
-      });
-
-      const signedUrl = await getSignedUrl(s3Client, getObjectCommand, {
-        expiresIn: 3600 // URL expires in 1 hour
-      });
-
-      return {
-        fileName: file.Key,
-        url: signedUrl,
-        contentType: file.Key?.split('.').pop() || '',
-        uploadTimestamp: file.LastModified?.getTime() || 0,
-        public_id: file.ETag?.replace(/"/g, '') || '',
-        format: file.Key?.split('.').pop() || ''
-      };
+    return files.map(file => ({
+      fileName: file.Key || '',
+      url: `https://cdn.malikarbab.de/${file.Key}`,
+      contentType: file.Key?.split('.').pop()?.toLowerCase() || '',
+      uploadTimestamp: file.LastModified?.getTime() || 0,
+      public_id: file.Key || ''
     }));
 
-    console.log('First file URL:', transformedFiles[0]?.url);
-    return NextResponse.json(transformedFiles);
-  } catch (error: any) {
-    console.error('Detailed error in /api/images:', {
-      message: error.message,
-      code: error.$metadata?.httpStatusCode,
-      requestId: error.$metadata?.requestId,
-      cfRay: error.$metadata?.cfRay,
-      env: {
-        hasKeyId: !!process.env.B2_APPLICATION_KEY_ID,
-        hasKey: !!process.env.B2_APPLICATION_KEY,
-        bucketName: process.env.B2_BUCKET_NAME,
-        endpoint: process.env.B2_ENDPOINT
-      }
-    });
-
-    return NextResponse.json(
-      { 
-        error: 'Failed to fetch images', 
-        details: error.message,
-        code: error.$metadata?.httpStatusCode
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('Error listing files:', error);
+    throw error;
   }
 }
 
 export async function GET() {
-  return listFiles();
+  try {
+    const files = await listFiles();
+    return NextResponse.json(files);
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch files' },
+      { status: 500 }
+    );
+  }
 }

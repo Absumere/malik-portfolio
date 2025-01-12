@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    domains: ['cdn.malikarbab.de'],
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
@@ -15,20 +17,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
-      {
-        protocol: 'https',
-        hostname: 'cdn.malikarbab.de',
-        pathname: '/**',
-      }
     ],
   },
   typescript: {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+    serverActions: true,
     instrumentationHook: true,
   },
   webpack: (config, { isServer, nextRuntime }) => {
