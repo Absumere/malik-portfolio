@@ -19,10 +19,12 @@ export default function ImageGallery() {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const processImageUrl = (url: string) => {
-    // Convert URL to use CDN domain and ensure proper encoding
-    return url
-      .replace('https://www.malikarbab.de/', 'https://cdn.malikarbab.de/')
-      .replace(/\s+/g, '%20');
+    // Extract the file path from the CDN URL
+    const cdnUrl = new URL(url);
+    const path = cdnUrl.pathname.replace(/^\//, ''); // Remove leading slash
+    
+    // Return the proxied media URL
+    return `/api/media/${path}`;
   };
 
   useEffect(() => {
@@ -71,7 +73,7 @@ export default function ImageGallery() {
             key={index}
             className="relative aspect-square bg-[#111111] border border-[#222222]"
           >
-            <div className="absolute inset-0 bg-white/5" />
+            <div className="absolute inset-0 bg-white/5 animate-pulse" />
           </div>
         ))}
       </div>
@@ -102,7 +104,7 @@ export default function ImageGallery() {
           return (
             <div
               key={image.fileName}
-              className="relative aspect-square cursor-pointer bg-[#111111] border border-[#222222] overflow-hidden"
+              className="relative aspect-square cursor-pointer bg-[#111111] border border-[#222222] overflow-hidden group"
               onClick={() => setSelectedImage(image.url)}
             >
               <div className="absolute inset-0 bg-white/5" />
@@ -118,7 +120,7 @@ export default function ImageGallery() {
                 src={image.url}
                 alt={image.fileName}
                 fill
-                className="object-cover transition-opacity duration-300"
+                className="object-cover transition-all duration-300 group-hover:scale-105"
                 style={{ opacity: loadedImages.has(image.url) ? 1 : 0 }}
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                 priority={index < 4}

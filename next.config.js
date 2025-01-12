@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['cdn.malikarbab.de', 'res.cloudinary.com'],
+    domains: ['cdn.malikarbab.de', 'res.cloudinary.com', 's3.eu-central-003.backblazeb2.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -21,7 +21,7 @@ const nextConfig = {
     ],
   },
   typescript: {
-    ignoreBuildErrors: true, // Temporarily ignore TS errors during build
+    ignoreBuildErrors: true,
   },
   experimental: {
     instrumentationHook: true,
@@ -33,17 +33,11 @@ const nextConfig = {
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
-          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT,OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
         ],
       },
-      {
-        source: '/_next/image:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-        ],
-      },
-    ]
+    ];
   },
 }
 
