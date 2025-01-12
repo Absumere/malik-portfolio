@@ -11,6 +11,7 @@ export { ParticleOrb } from './ParticleOrb';
 export { ShimmerText } from './ShimmerText';
 export { SocialIcon } from './SocialIcon';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
+export { TokenPurchaseModal } from '../modals/TokenPurchaseModal';
 
 // Re-export Stripe components from the correct package
 export {
