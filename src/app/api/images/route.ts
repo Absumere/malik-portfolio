@@ -19,8 +19,11 @@ export async function GET(request: NextRequest) {
       return new NextResponse(null, { headers });
     }
 
+    console.log('Fetching B2 files...');
+    
     // List files from B2
     const files = await listB2Files();
+    console.log(`Found ${files.length} files`);
     
     // Get download URLs for each file
     const filesWithUrls = await Promise.all(
@@ -38,8 +41,12 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    // Filter out any failed URLs
-    const validFiles = filesWithUrls.filter((file): file is NonNullable<typeof file> => file !== null);
+    // Filter out any failed URLs and sort by timestamp
+    const validFiles = filesWithUrls
+      .filter((file): file is NonNullable<typeof file> => file !== null)
+      .sort((a, b) => b.uploadTimestamp - a.uploadTimestamp);
+
+    console.log(`Returning ${validFiles.length} valid files`);
 
     return NextResponse.json(validFiles, { 
       headers,
@@ -47,10 +54,16 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('API Error:', error);
+    
+    // Return a more detailed error response
     return NextResponse.json(
-      { error: 'Failed to fetch files', details: error.message },
       { 
-        status: 500,
+        error: 'Failed to fetch files', 
+        details: error.message,
+        timestamp: new Date().toISOString()
+      },
+      { 
+        status: error.message.includes('unauthorized') ? 401 : 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-store'
