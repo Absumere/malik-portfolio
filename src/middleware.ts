@@ -2,27 +2,34 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Clone the request url
-  const url = request.nextUrl.clone()
+  // Get the origin from the request headers
+  const origin = request.headers.get('origin') || '*'
 
-  // If the request is for the root path
-  if (url.pathname === '/') {
-    // Rewrite to the home page
-    return NextResponse.rewrite(new URL('/', request.url))
+  // Set response headers for CORS
+  const headers = {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400',
   }
 
-  return NextResponse.next()
+  // Handle preflight requests
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, { headers })
+  }
+
+  // Forward the request with CORS headers
+  const response = NextResponse.next()
+  Object.entries(headers).forEach(([key, value]) => {
+    response.headers.set(key, value)
+  })
+
+  return response
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/api/:path*',
+    '/_next/image:path*',
   ],
 }

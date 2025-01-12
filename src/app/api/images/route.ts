@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 export const runtime = 'edge';
@@ -12,7 +12,6 @@ async function listFiles() {
 
     // Parse endpoint URL
     const endpointUrl = new URL(process.env.B2_ENDPOINT || '');
-    // Handle both formats: eu-central-003 and us-west-002
     const region = endpointUrl.hostname.split('.')[1] + '-' + endpointUrl.hostname.split('.')[2];
 
     const config = {
@@ -25,35 +24,15 @@ async function listFiles() {
       forcePathStyle: true
     };
 
-    console.log('S3 Client Configuration:', {
-      region,
-      endpoint: process.env.B2_ENDPOINT,
-      bucket: process.env.B2_BUCKET_NAME,
-      keyIdPrefix: process.env.B2_APPLICATION_KEY_ID?.substring(0, 8),
-      forcePathStyle: true
-    });
-
     const s3Client = new S3Client(config);
-
-    console.log('Listing files...');
     const command = new ListObjectsV2Command({
       Bucket: process.env.B2_BUCKET_NAME,
       MaxKeys: 1000
     });
 
     const response = await s3Client.send(command);
-    console.log('Response received:', {
-      success: !!response.Contents,
-      fileCount: response.Contents?.length || 0,
-      keyCount: response.KeyCount,
-      isTruncated: response.IsTruncated
-    });
-
-    if (response.Contents && response.Contents.length > 0) {
-      console.log('First file URL:', `https://cdn.malikarbab.de/${response.Contents[0].Key}`);
-    }
-
     const files = response.Contents || [];
+
     return files.map(file => ({
       fileName: file.Key || '',
       url: `https://cdn.malikarbab.de/${file.Key}`,
@@ -68,14 +47,26 @@ async function listFiles() {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Set CORS headers
+    const headers = new Headers({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    });
+
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, { headers });
+    }
+
     const files = await listFiles();
-    return NextResponse.json(files);
-  } catch (error) {
+    return NextResponse.json(files, { headers });
+  } catch (error: any) {
     console.error('API Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch files' },
+      { error: 'Failed to fetch files', details: error.message },
       { status: 500 }
     );
   }
