@@ -4,12 +4,6 @@ import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-const generateCdnUrl = (key: string) => {
-  // Ensure the key is properly encoded
-  const encodedKey = encodeURIComponent(key).replace(/%2F/g, '/');
-  return `https://cdn.malikarbab.de/${encodedKey}`;
-};
-
 async function listFiles() {
   try {
     if (!process.env.B2_APPLICATION_KEY_ID || !process.env.B2_APPLICATION_KEY || !process.env.B2_BUCKET_NAME) {
@@ -43,7 +37,7 @@ async function listFiles() {
       const key = file.Key || '';
       return {
         fileName: key,
-        url: generateCdnUrl(key),
+        url: `/api/media/${encodeURIComponent(key)}`,
         contentType: key.split('.').pop()?.toLowerCase() || '',
         uploadTimestamp: file.LastModified?.getTime() || 0,
         public_id: key

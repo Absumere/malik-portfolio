@@ -29,6 +29,7 @@ export async function GET(
 
     // Join the path segments and decode them
     const filePath = decodeURIComponent(params.path.join('/'));
+    console.log('Fetching file:', filePath);
 
     // Parse endpoint URL for region
     const endpointUrl = new URL(process.env.B2_ENDPOINT || '');
@@ -58,9 +59,17 @@ export async function GET(
     // Convert the readable stream to a buffer
     const buffer = await streamToBuffer(response.Body as unknown as ReadableStream);
 
+    // Determine content type from file extension if not provided
+    const contentType = response.ContentType || 
+      filePath.toLowerCase().endsWith('.png') ? 'image/png' :
+      filePath.toLowerCase().endsWith('.jpg') || filePath.toLowerCase().endsWith('.jpeg') ? 'image/jpeg' :
+      filePath.toLowerCase().endsWith('.gif') ? 'image/gif' :
+      filePath.toLowerCase().endsWith('.webp') ? 'image/webp' :
+      'application/octet-stream';
+
     // Set appropriate headers
     const headers = new Headers({
-      'Content-Type': response.ContentType || 'application/octet-stream',
+      'Content-Type': contentType,
       'Cache-Control': 'public, max-age=31536000, immutable',
       'Access-Control-Allow-Origin': '*'
     });
@@ -82,7 +91,8 @@ export async function GET(
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-store'
+          'Cache-Control': 'no-store',
+          'Access-Control-Allow-Origin': '*'
         }
       }
     );

@@ -18,15 +18,6 @@ export default function ImageGallery() {
   const [error, setError] = useState<string | null>(null);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
-  const processImageUrl = (url: string) => {
-    // Extract the file path from the CDN URL
-    const cdnUrl = new URL(url);
-    const path = cdnUrl.pathname.replace(/^\//, ''); // Remove leading slash
-    
-    // Return the proxied media URL
-    return `/api/media/${path}`;
-  };
-
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -39,13 +30,8 @@ export default function ImageGallery() {
         console.log('API Response:', data);
         
         if (Array.isArray(data)) {
-          // Process URLs and sort images
-          const processedImages = data.map(img => ({
-            ...img,
-            url: processImageUrl(img.url)
-          }));
-          
-          const sortedImages = processedImages.sort((a, b) => 
+          // Sort images by upload timestamp
+          const sortedImages = data.sort((a, b) => 
             b.uploadTimestamp - a.uploadTimestamp
           );
           
@@ -136,9 +122,8 @@ export default function ImageGallery() {
                   const parent = target.parentElement;
                   if (parent) {
                     parent.classList.add('bg-[#331111]');
-                    // Add error message
                     const errorMsg = document.createElement('div');
-                    errorMsg.className = 'absolute inset-0 flex items-center justify-center text-red-500 text-sm';
+                    errorMsg.className = 'absolute inset-0 flex items-center justify-center text-red-500 text-sm p-2 text-center';
                     errorMsg.textContent = 'Failed to load image';
                     parent.appendChild(errorMsg);
                   }
@@ -183,9 +168,8 @@ export default function ImageGallery() {
                 const parent = target.parentElement;
                 if (parent) {
                   parent.classList.add('bg-[#331111]');
-                  // Add error message
                   const errorMsg = document.createElement('div');
-                  errorMsg.className = 'absolute inset-0 flex items-center justify-center text-red-500 text-sm';
+                  errorMsg.className = 'absolute inset-0 flex items-center justify-center text-red-500 text-sm p-2 text-center';
                   errorMsg.textContent = 'Failed to load image';
                   parent.appendChild(errorMsg);
                 }
