@@ -18,28 +18,34 @@ export default function ImageGallery() {
   const [error, setError] = useState<string | null>(null);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
+  // Function to refresh images periodically (every 45 minutes)
+  const refreshImages = async () => {
+    try {
+      const response = await fetch('/api/images');
+      if (!response.ok) {
+        throw new Error('Failed to fetch images');
+      }
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        const sortedImages = data.sort((a, b) => 
+          b.uploadTimestamp - a.uploadTimestamp
+        );
+        setImages(sortedImages);
+      } else {
+        throw new Error('Invalid data format');
+      }
+    } catch (error) {
+      console.error('Error refreshing images:', error);
+      // Don't set error state here to avoid disrupting the display
+    }
+  };
+
   useEffect(() => {
     const fetchImages = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/images');
-        if (!response.ok) {
-          throw new Error('Failed to fetch images');
-        }
-        const data = await response.json();
-        console.log('API Response:', data);
-        
-        if (Array.isArray(data)) {
-          // Sort images by upload timestamp
-          const sortedImages = data.sort((a, b) => 
-            b.uploadTimestamp - a.uploadTimestamp
-          );
-          
-          console.log('Processed Images:', sortedImages);
-          setImages(sortedImages);
-        } else {
-          throw new Error('Invalid data format');
-        }
+        await refreshImages();
       } catch (error) {
         console.error('Error fetching images:', error);
         setError(error instanceof Error ? error.message : 'Failed to load images');
@@ -49,6 +55,10 @@ export default function ImageGallery() {
     };
 
     fetchImages();
+
+    // Refresh signed URLs every 45 minutes
+    const interval = setInterval(refreshImages, 45 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -86,7 +96,7 @@ export default function ImageGallery() {
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((image, index) => {
-          console.log('Rendering image:', image.url);
+          console.log('Rendering image:', image.fileName);
           return (
             <div
               key={image.fileName}
@@ -112,11 +122,11 @@ export default function ImageGallery() {
                 priority={index < 4}
                 loading={index < 4 ? 'eager' : 'lazy'}
                 onLoadingComplete={() => {
-                  console.log('Image loaded:', image.url);
+                  console.log('Image loaded:', image.fileName);
                   setLoadedImages(prev => new Set(prev).add(image.url));
                 }}
                 onError={(e) => {
-                  console.error('Image load error:', image.url);
+                  console.error('Image load error:', image.fileName);
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   const parent = target.parentElement;
@@ -162,7 +172,7 @@ export default function ImageGallery() {
                 setLoadedImages(prev => new Set(prev).add(selectedImage));
               }}
               onError={(e) => {
-                console.error('Lightbox image load error:', selectedImage);
+                console.error('Lightbox image load error');
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const parent = target.parentElement;
