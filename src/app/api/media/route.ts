@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { clerkClient } from '@clerk/nextjs';
+import { getAuth } from '@clerk/nextjs/server';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -21,39 +22,36 @@ async function fetchFromCloudinary(resourceType: 'image' | 'video') {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${resourceType}s from Cloudinary`);
+    console.error('Cloudinary API Error:', await response.text());
+    throw new Error(`Failed to fetch from Cloudinary: ${response.status}`);
   }
 
   const data = await response.json();
   return data.resources.map((resource: any) => ({
     ...resource,
-    secure_url: resource.secure_url.replace(
-      's3.eu-central-003.backblazeb2.com/malikarbab-storage',
-      'cdn.malikarbab.de'
-    )
+    url: resource.secure_url.replace('res.cloudinary.com', CDN_URL)
   }));
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { userId } = auth();
+    // Check authentication
+    const { userId } = await getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Fetch both images and videos
     const [images, videos] = await Promise.all([
       fetchFromCloudinary('image'),
-      fetchFromCloudinary('video'),
+      fetchFromCloudinary('video')
     ]);
 
-    return NextResponse.json({
-      images,
-      videos,
-    });
-  } catch (error) {
-    console.error('Error fetching media:', error);
+    return NextResponse.json([...images, ...videos]);
+  } catch (error: any) {
+    console.error('Media API Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch media' },
+      { error: 'Failed to fetch media', details: error.message },
       { status: 500 }
     );
   }
@@ -61,59 +59,45 @@ export async function GET() {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId } = auth();
+    // Check authentication
+    const { userId } = await getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { public_id, resource_type } = await request.json();
-    if (!public_id || !resource_type) {
+    const { searchParams } = new URL(request.url);
+    const publicId = searchParams.get('public_id');
+    const resourceType = searchParams.get('resource_type') || 'image';
+
+    if (!publicId) {
       return NextResponse.json(
-        { error: 'Missing public_id or resource_type' },
+        { error: 'Missing public_id parameter' },
         { status: 400 }
       );
     }
 
-    // Generate signature for deletion
-    const timestamp = Math.round(new Date().getTime() / 1000);
-    const toSign = `public_id=${public_id}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`;
-    
-    // Use Web Crypto API for hashing
-    const encoder = new TextEncoder();
-    const data = encoder.encode(toSign);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    const formData = new FormData();
-    formData.append('public_id', public_id);
-    formData.append('api_key', process.env.CLOUDINARY_API_KEY!);
-    formData.append('timestamp', timestamp.toString());
-    formData.append('signature', signature);
-
-    const deleteResponse = await fetch(
-      `${CLOUDINARY_URL}/${resource_type}/destroy`,
+    const credentials = btoa(`${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`);
+    const response = await fetch(
+      `${CLOUDINARY_URL}/resources/${resourceType}/upload/${publicId}`,
       {
-        method: 'POST',
-        body: formData,
+        method: 'DELETE',
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
       }
     );
 
-    if (!deleteResponse.ok) {
-      const error = await deleteResponse.text();
-      console.error('Cloudinary deletion failed:', error);
-      return NextResponse.json(
-        { error: 'Failed to delete from Cloudinary' },
-        { status: 500 }
-      );
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Cloudinary Delete Error:', errorText);
+      throw new Error(`Failed to delete from Cloudinary: ${response.status}`);
     }
 
-    const result = await deleteResponse.json();
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Delete error:', error);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Delete API Error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to delete media', details: error.message },
       { status: 500 }
     );
   }
