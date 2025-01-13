@@ -54,8 +54,8 @@ export default function PortfolioPage() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="max-w-[1600px] w-full mx-auto px-6 py-24">
-        <div className="mb-12">
+      <div className="w-full mx-auto px-4 py-16">
+        <div className="mb-8">
           <h1 className="text-4xl font-light tracking-tight">Portfolio</h1>
           <p className="text-neutral-400 text-lg">
             A collection of my creative work in video and image formats

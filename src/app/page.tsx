@@ -78,7 +78,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative h-[30vh]">
+        <div className="relative h-[20vh]">
           <div className="absolute inset-0">
             <SplineViewer 
               url="https://prod.spline.design/6EqZ6HwgTfB8LEy5/scene.splinecode"
@@ -88,7 +88,7 @@ export default function Home() {
         </div>
 
         {/* Gradient transition */}
-        <div className="h-6 bg-gradient-to-b from-transparent to-black/80" />
+        <div className="h-4 bg-gradient-to-b from-transparent to-black/80" />
       </div>
     </>
   );

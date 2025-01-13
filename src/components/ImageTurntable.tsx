@@ -76,7 +76,7 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-12rem)]">
+    <div className="relative w-full h-[calc(100vh-8rem)]">
       <div className="absolute inset-0 flex items-center justify-center">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
@@ -103,7 +103,7 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
             }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="relative w-[60%] h-[calc(100%-4rem)]">
+            <div className="relative w-[85%] h-[calc(100%-2rem)]">
               <Image
                 src={images[currentIndex].url}
                 alt=""
@@ -118,13 +118,13 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
 
         {/* Navigation buttons */}
         <button
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/75 hover:text-white hover:bg-black/75 transition-colors z-10"
+          className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/75 hover:text-white hover:bg-black/75 transition-colors z-10"
           onClick={() => paginate(-1)}
         >
           <ChevronLeftIcon className="w-6 h-6" />
         </button>
         <button
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/75 hover:text-white hover:bg-black/75 transition-colors z-10"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/75 hover:text-white hover:bg-black/75 transition-colors z-10"
           onClick={() => paginate(1)}
         >
           <ChevronRightIcon className="w-6 h-6" />
