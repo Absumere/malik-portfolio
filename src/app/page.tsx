@@ -44,7 +44,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="h-screen relative overflow-hidden">
           {/* Content */}
-          <div className="absolute top-1/4 md:top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center max-w-4xl mx-auto space-y-4 md:space-y-6 z-20 px-4">
+          <div className="absolute top-1/5 md:top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center max-w-4xl mx-auto space-y-3 md:space-y-4 z-20 px-4">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight animate-scale-in">
               Digital Art & Creative Development
             </h1>
