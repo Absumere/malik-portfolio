@@ -1,0 +1,9 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://malikarbab.de/sitemap.xml
+
+# Optimize crawl rate
+Crawl-delay: 1

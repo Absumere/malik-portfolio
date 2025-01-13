@@ -9,11 +9,69 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Malik Arbab",
-  description: "Portfolio and AI Tools",
-  manifest: "/manifest.json",
-  formatDetection: {
-    telephone: false,
+  title: {
+    default: "Malik Arbab | Visual Artist & AI Developer",
+    template: "%s | Malik Arbab"
+  },
+  description: "Malik Arbab is a Visual Artist and AI Developer specializing in machine learning, digital art, and creative technology. Explore innovative AI tools and digital art projects.",
+  keywords: [
+    "Malik Arbab",
+    "Visual Artist",
+    "AI Artist",
+    "Digital Artist",
+    "ML Developer",
+    "Machine Learning",
+    "Creative Technology",
+    "AI Tools",
+    "Digital Art",
+    "Neural Networks",
+    "Real-time Graphics",
+    "WebGL",
+    "Creative Coding",
+    "Interactive Art",
+    "Berlin Artist",
+    "German Developer"
+  ],
+  creator: "Malik Arbab",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://malikarbab.de",
+    title: "Malik Arbab | Visual Artist & AI Developer",
+    description: "Explore the intersection of art and artificial intelligence through innovative projects and tools by Malik Arbab.",
+    siteName: "Malik Arbab Portfolio",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Malik Arbab - Visual Artist & AI Developer"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Malik Arbab | Visual Artist & AI Developer",
+    description: "Explore the intersection of art and artificial intelligence through innovative projects and tools.",
+    creator: "@malikarbab",
+    images: ["/og-image.jpg"]
+  },
+  alternates: {
+    canonical: "https://malikarbab.de"
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code",
   },
 };
 
