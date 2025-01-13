@@ -5,39 +5,39 @@ import { TracingBeam } from '@/components/ui';
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-black">
-      <div className="px-6 py-12 md:px-12 md:py-20 lg:py-24 lg:px-16">
+      <div className="px-4 py-8 md:px-12 md:py-20 lg:py-24 lg:px-16">
         <TracingBeam>
           <div className="max-w-4xl mx-auto">
             {/* Hero Section */}
-            <div className="text-center mb-16">
-              <h1 className="text-5xl font-bold mb-6">About Me</h1>
-              <p className="text-xl text-gray-400">
+            <div className="text-center mb-12 md:mb-16">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6">About Me</h1>
+              <p className="text-lg md:text-xl text-gray-400">
                 Technical Director & Creative Technologist
               </p>
             </div>
 
             {/* Main Content */}
-            <div className="space-y-16">
+            <div className="space-y-12 md:space-y-16">
               {/* Overview */}
-              <section className="space-y-6">
+              <section className="space-y-4 md:space-y-6">
                 <div className="space-y-4 text-gray-300 leading-relaxed">
-                  <p className="text-lg">
+                  <p className="text-base md:text-lg">
                     Specializing in cutting-edge technical solutions across multiple domains, from real-time graphics and machine learning to full-stack development and creative coding. My expertise spans enterprise-level system architecture to innovative artistic installations.
                   </p>
                 </div>
               </section>
 
               {/* Service Categories */}
-              <section className="space-y-8">
-                <h2 className="text-3xl font-bold mb-8">Services & Expertise</h2>
+              <section className="space-y-6 md:space-y-8">
+                <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Services & Expertise</h2>
                 
                 {/* Technical Development */}
-                <div className="rounded-xl border border-white/10 p-8 space-y-6 hover:border-white/20 transition-all">
-                  <h3 className="text-2xl font-semibold text-primary">Technical Development</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-xl border border-white/10 p-4 md:p-8 space-y-4 md:space-y-6 hover:border-white/20 transition-all">
+                  <h3 className="text-xl md:text-2xl font-semibold text-primary">Technical Development</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
-                      <h4 className="font-medium mb-2">System Architecture</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-300">
+                      <h4 className="font-medium mb-2 text-base md:text-lg">System Architecture</h4>
+                      <ul className="list-disc pl-5 space-y-1 text-gray-300 text-sm md:text-base">
                         <li>Full-stack web applications</li>
                         <li>Real-time processing pipelines</li>
                         <li>Database architecture & optimization</li>
@@ -46,8 +46,8 @@ export default function AboutPage() {
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-medium mb-2">Machine Learning</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-300">
+                      <h4 className="font-medium mb-2 text-base md:text-lg">Machine Learning</h4>
+                      <ul className="list-disc pl-5 space-y-1 text-gray-300 text-sm md:text-base">
                         <li>Neural rendering (NeRFs, Gaussian Splatting)</li>
                         <li>Custom ML model development</li>
                         <li>Real-time inference optimization</li>
@@ -59,12 +59,12 @@ export default function AboutPage() {
                 </div>
 
                 {/* Creative Technology */}
-                <div className="rounded-xl border border-white/10 p-8 space-y-6 hover:border-white/20 transition-all">
-                  <h3 className="text-2xl font-semibold text-primary">Creative Technology</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-xl border border-white/10 p-4 md:p-8 space-y-4 md:space-y-6 hover:border-white/20 transition-all">
+                  <h3 className="text-xl md:text-2xl font-semibold text-primary">Creative Technology</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
-                      <h4 className="font-medium mb-2">Real-time Graphics</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-300">
+                      <h4 className="font-medium mb-2 text-base md:text-lg">Real-time Graphics</h4>
+                      <ul className="list-disc pl-5 space-y-1 text-gray-300 text-sm md:text-base">
                         <li>Three.js and WebGL development</li>
                         <li>Real-time 3D applications</li>
                         <li>Interactive installations</li>
@@ -74,8 +74,8 @@ export default function AboutPage() {
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-medium mb-2">Creative Coding</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-300">
+                      <h4 className="font-medium mb-2 text-base md:text-lg">Creative Coding</h4>
+                      <ul className="list-disc pl-5 space-y-1 text-gray-300 text-sm md:text-base">
                         <li>Generative art systems</li>
                         <li>Interactive experiences</li>
                         <li>Visual programming (TouchDesigner, vvvv)</li>
@@ -88,28 +88,27 @@ export default function AboutPage() {
                 </div>
 
                 {/* Visual Production */}
-                <div className="rounded-xl border border-white/10 p-8 space-y-6 hover:border-white/20 transition-all">
-                  <h3 className="text-2xl font-semibold text-primary">Visual Production</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-xl border border-white/10 p-4 md:p-8 space-y-4 md:space-y-6 hover:border-white/20 transition-all">
+                  <h3 className="text-xl md:text-2xl font-semibold text-primary">Visual Production</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
-                      <h4 className="font-medium mb-2">3D & Motion</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-300">
-                        <li>Advanced 3D modeling & animation</li>
-                        <li>Character creation & rigging</li>
-                        <li>Digital environment design</li>
-                        <li>Motion capture integration</li>
+                      <h4 className="font-medium mb-2 text-base md:text-lg">3D & Motion</h4>
+                      <ul className="list-disc pl-5 space-y-1 text-gray-300 text-sm md:text-base">
+                        <li>Motion design & animation</li>
+                        <li>3D modeling & texturing</li>
+                        <li>Character & environment design</li>
                         <li>Procedural asset creation</li>
-                        <li>Real-time virtual production</li>
+                        <li>VFX & compositing</li>
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-medium mb-2">VFX & Post-production</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-300">
-                        <li>Compositing & color grading</li>
-                        <li>Particle systems & simulations</li>
-                        <li>Custom shader development</li>
-                        <li>Pipeline automation</li>
-                        <li>Real-time VFX</li>
+                      <h4 className="font-medium mb-2 text-base md:text-lg">Digital Art</h4>
+                      <ul className="list-disc pl-5 space-y-1 text-gray-300 text-sm md:text-base">
+                        <li>Concept development</li>
+                        <li>Digital illustration</li>
+                        <li>Art direction</li>
+                        <li>Brand identity design</li>
+                        <li>UI/UX design systems</li>
                       </ul>
                     </div>
                   </div>
