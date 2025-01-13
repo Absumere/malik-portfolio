@@ -35,7 +35,7 @@ export default function Home() {
         </div>
 
         {/* Spline Scene */}
-        <div className="absolute inset-x-0 top-[30%] h-[90vh] z-10">
+        <div className="absolute inset-x-0 top-[25%] h-[90vh] z-10">
           <SplineViewer 
             url="https://prod.spline.design/JSRfrdvgsrn49EQP/scene.splinecode"
             className="w-full h-full"
@@ -43,7 +43,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative h-screen">
+      <div className="relative h-[50vh]">
         <div className="absolute inset-0">
           <SplineViewer 
             url="https://prod.spline.design/6EqZ6HwgTfB8LEy5/scene.splinecode"
