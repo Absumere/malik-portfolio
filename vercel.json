@@ -1,4 +1,97 @@
-{
+./node_modules/oauth/index.js
+./node_modules/next-auth/core/lib/oauth/client-legacy.js
+./node_modules/next-auth/core/lib/oauth/callback.js
+./node_modules/next-auth/core/routes/callback.js
+./node_modules/next-auth/core/routes/index.js
+./node_modules/next-auth/core/index.js
+./node_modules/next-auth/next/index.js
+./src/app/api/upload/s3/route.ts
+./node_modules/next/dist/build/webpack/loaders/next-edge-app-route-loader/index.js?absolutePagePath=private-next-app-dir%2Fapi%2Fupload%2Fs3%2Froute.ts&page=%2Fapi%2Fupload%2Fs3%2Froute&appDirLoader=bmV4dC1hcHAtbG9hZGVyP25hbWU9YXBwJTJGYXBpJTJGdXBsb2FkJTJGczMlMkZyb3V0ZSZwYWdlPSUyRmFwaSUyRnVwbG9hZCUyRnMzJTJGcm91dGUmcGFnZVBhdGg9cHJpdmF0ZS1uZXh0LWFwcC1kaXIlMkZhcGklMkZ1cGxvYWQlMkZzMyUyRnJvdXRlLnRzJmFwcERpcj0lMkZ2ZXJjZWwlMkZwYXRoMCUyRnNyYyUyRmFwcCZhcHBQYXRocz0lMkZhcGklMkZ1cGxvYWQlMkZzMyUyRnJvdXRlJnBhZ2VFeHRlbnNpb25zPXRzeCZwYWdlRXh0ZW5zaW9ucz10cyZwYWdlRXh0ZW5zaW9ucz1qc3gmcGFnZUV4dGVuc2lvbnM9anMmYmFzZVBhdGg9JmFzc2V0UHJlZml4PSZuZXh0Q29uZmlnT3V0cHV0PXN0YW5kYWxvbmUmcHJlZmVycmVkUmVnaW9uPSZtaWRkbGV3YXJlQ29uZmlnPWUzMCUzRCE%3D&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D!
+./node_modules/oauth/lib/oauth2.js:3:1
+Module not found: Can't resolve 'https'
+https://nextjs.org/docs/messages/module-not-found
+Import trace for requested module:
+./node_modules/oauth/index.js
+./node_modules/next-auth/core/lib/oauth/client-legacy.js
+./node_modules/next-auth/core/lib/oauth/callback.js
+./node_modules/next-auth/core/routes/callback.js
+./node_modules/next-auth/core/routes/index.js
+./node_modules/next-auth/core/index.js
+./node_modules/next-auth/next/index.js
+./src/app/api/upload/s3/route.ts
+./node_modules/next/dist/build/webpack/loaders/next-edge-app-route-loader/index.js?absolutePagePath=private-next-app-dir%2Fapi%2Fupload%2Fs3%2Froute.ts&page=%2Fapi%2Fupload%2Fs3%2Froute&appDirLoader=bmV4dC1hcHAtbG9hZGVyP25hbWU9YXBwJTJGYXBpJTJGdXBsb2FkJTJGczMlMkZyb3V0ZSZwYWdlPSUyRmFwaSUyRnVwbG9hZCUyRnMzJTJGcm91dGUmcGFnZVBhdGg9cHJpdmF0ZS1uZXh0LWFwcC1kaXIlMkZhcGklMkZ1cGxvYWQlMkZzMyUyRnJvdXRlLnRzJmFwcERpcj0lMkZ2ZXJjZWwlMkZwYXRoMCUyRnNyYyUyRmFwcCZhcHBQYXRocz0lMkZhcGklMkZ1cGxvYWQlMkZzMyUyRnJvdXRlJnBhZ2VFeHRlbnNpb25zPXRzeCZwYWdlRXh0ZW5zaW9ucz10cyZwYWdlRXh0ZW5zaW9ucz1qc3gmcGFnZUV4dGVuc2lvbnM9anMmYmFzZVBhdGg9JmFzc2V0UHJlZml4PSZuZXh0Q29uZmlnT3V0cHV0PXN0YW5kYWxvbmUmcHJlZmVycmVkUmVnaW9uPSZtaWRkbGV3YXJlQ29uZmlnPWUzMCUzRCE%3D&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D!
+> Build failed because of webpack errors
+Error: Command "prisma generate && next build" exited with 1 i get this error while deploying my next js website project to vercel why what can i do to music
+
+Thought about Next.js deployment error für 8 Sekunden
+This error usually means that you’re trying to load a built-in Node module (in this case, https) in an environment (Vercel Edge Runtime) that does not support it. Next.js Edge runtimes don’t include Node’s core modules, so any package (like oauth) that depends on them will fail to build or run when deployed to Vercel as an Edge function.
+
+Below are some ways you can resolve or work around the issue:
+
+1. Use the Node.js (Server) Runtime Instead of the Edge Runtime
+If you need the Node environment (for example, because NextAuth or AWS SDK or any other library depends on Node core modules), you can tell Next.js to run a particular route (or your entire app) on the Node.js runtime instead of the Edge runtime.
+
+App Router (app/ directory)
+Inside the file route.ts where you need Node features, add:
+
+ts
+Code kopieren
+// route.ts
+export const runtime = 'nodejs'
+This forces Next.js to run that route on a Node server environment rather than the Edge runtime. That will allow your code (and libraries) to use Node’s built-in https, fs, crypto, etc. without errors.
+
+Pages Router (pages/ directory)
+If you’re still using the old Pages Router with NextAuth, you can specify:
+
+js
+Code kopieren
+export const config = {
+  runtime: 'nodejs',
+}
+in the API route file to force Node.js runtime.
+
+Important: If you’re mixing NextAuth in the new App Router while using older packages that rely on Node core modules, you often have to ensure that NextAuth’s routes (or certain callbacks) are not running on the Edge runtime.
+
+2. Disable or Remove Edge Functions Entirely
+Sometimes the simplest approach (if you don’t need Edge features at all) is to switch the whole app to Node.js runtime. Check your next.config.js to see if you specified something like:
+
+js
+Code kopieren
+module.exports = {
+  // ...
+  experimental: {
+    runtime: 'edge',
+  },
+}
+Removing or disabling that will let Next.js run everything on Node, resolving the error.
+
+3. Switch to an OAuth Library Compatible with Edge (If Possible)
+If you truly need Edge runtimes for performance reasons, you’ll have to use an OAuth library that does not rely on Node’s built-in modules. The oauth package you’re using depends on https, so it will not work in Edge. Check for a pure Web API–based OAuth client or see if NextAuth has a mode that doesn’t pull in Node dependencies for your provider.
+
+However, many OAuth flows (and NextAuth itself) typically assume access to Node’s crypto, http, and https modules, so you’re almost certainly going to need the Node runtime anyway.
+
+4. Split Your Logic Between Edge and Node
+If some of your routes can run in Edge while others can’t, you can split them. For example, you might have:
+
+app/api/upload/s3/route.ts set to runtime = 'nodejs'.
+Some other routes or middleware continue using runtime = 'edge' if needed.
+This is only necessary if you specifically want to keep part of your application on the Edge runtime.
+
+TL;DR
+To fix the “Module not found: Can’t resolve 'https'” error on Vercel:
+
+Ensure that any route needing NextAuth or AWS S3 (or other Node-based libraries) is running on the Node.js runtime by adding:
+
+ts
+Code kopieren
+export const runtime = 'nodejs'
+at the top of the file.
+
+Remove any configuration that sets the entire app to use Edge runtime if you don’t need Edge.
+
+Check the NextAuth docs for any instructions on disabling Edge if you are using the App Router.
+
+That should fix the build error and allow your code to access https without issues.{
   "version": 2,
   "framework": "nextjs",
   "regions": ["iad1"],
