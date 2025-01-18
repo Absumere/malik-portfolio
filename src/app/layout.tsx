@@ -2,9 +2,11 @@ import { Inter } from "next/font/google";
 import type { Metadata, Viewport } from 'next';
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import MobileNavigation from "@/components/MobileNavigation";
 import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
 import { cn } from "@/lib/utils";
+import { MobileDebug } from "@/components/debug/MobileDebug";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -110,17 +112,25 @@ export default function RootLayout({
           "min-h-screen bg-black text-white antialiased",
           "selection:bg-purple-500 selection:text-white",
           "touch-manipulation", // Improves touch interactions
-          "overscroll-none" // Prevents bounce effect on iOS
+          "overscroll-none", // Prevents bounce effect on iOS
+          "text-base md:text-lg", // Responsive font size
+          "safe-top safe-bottom" // Safe area insets
         )}
       >
         <Providers>
           <div className="flex min-h-screen flex-col">
-            <Navigation />
-            <main className="flex-1 pt-16 overflow-x-hidden">
+            <div className="hidden md:block">
+              <Navigation />
+            </div>
+            <div className="md:hidden">
+              <MobileNavigation />
+            </div>
+            <main className="flex-1 pt-16 overflow-x-hidden px-4 md:px-6 lg:px-8">
               {children}
             </main>
             <Footer />
           </div>
+          <MobileDebug />
         </Providers>
       </body>
     </html>
