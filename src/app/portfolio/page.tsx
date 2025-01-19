@@ -13,7 +13,7 @@ interface B2Image {
 }
 
 export default function PortfolioPage() {
-  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
+  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('videos');
   const [images, setImages] = useState<B2Image[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,59 +59,55 @@ export default function PortfolioPage() {
   }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-black text-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-light mb-4">
-          A collection of my creative work in video and image formats
-        </h1>
-
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8">
-          <button
-            onClick={() => setActiveTab('videos')}
-            className={`px-4 py-2 rounded-sm transition-colors ${
-              activeTab === 'videos'
-                ? 'bg-white text-black'
-                : 'bg-[#111111] text-white hover:bg-[#222222]'
-            }`}
-          >
-            Videos
-          </button>
-          <button
-            onClick={() => setActiveTab('images')}
-            className={`px-4 py-2 rounded-sm transition-colors ${
-              activeTab === 'images'
-                ? 'bg-white text-black'
-                : 'bg-[#111111] text-white hover:bg-[#222222]'
-            }`}
-          >
-            Images
-          </button>
+    <main className="min-h-screen bg-black text-white">
+      <div className="w-full mx-auto px-4 py-16">
+        <div className="mb-8">
+          <h1 className="text-4xl font-light tracking-tight">Portfolio</h1>
+          <p className="text-neutral-400 text-lg">
+            A collection of my creative work in video and image formats
+          </p>
         </div>
 
-        {/* Content */}
-        {activeTab === 'videos' ? (
-          <VideoGallery />
-        ) : (
-          <div>
-            {error ? (
-              <div className="text-red-500 p-4 rounded-lg bg-red-500/10">
-                Error: {error}
-              </div>
-            ) : loading ? (
-              <div className="w-full aspect-[3/2] bg-neutral-900 rounded-lg flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-              </div>
-            ) : images.length === 0 ? (
-              <div className="w-full aspect-[3/2] bg-neutral-900 rounded-lg flex items-center justify-center">
-                <p className="text-neutral-400">No images available</p>
-              </div>
-            ) : (
-              <ImageTurntable images={images} />
-            )}
+        <div className="border-b border-[#222222] mb-12">
+          <div className="flex gap-8">
+            {['Videos', 'Images'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab.toLowerCase() as 'videos' | 'images')}
+                className={`pb-4 text-lg ${
+                  activeTab === tab.toLowerCase()
+                    ? 'text-white border-b-2 border-white'
+                    : 'text-neutral-400 hover:text-white/80'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {activeTab === 'videos' && <VideoGallery />}
+        {activeTab === 'images' && (
+          <>
+            {error && (
+              <div className="flex justify-center items-center min-h-[600px] text-red-500">
+                <p>{error}</p>
+              </div>
+            )}
+            {loading && (
+              <div className="flex justify-center items-center min-h-[600px]">
+                <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
+            {!loading && !error && images.length > 0 && <ImageTurntable images={images} />}
+            {!loading && !error && images.length === 0 && (
+              <div className="flex justify-center items-center min-h-[600px] text-neutral-400">
+                <p>No images available</p>
+              </div>
+            )}
+          </>
         )}
       </div>
-    </div>
+    </main>
   );
 }
