@@ -5,11 +5,14 @@ import Script from 'next/script';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface SplineViewerProps {
-  url: string;
+  url?: string;
   className?: string;
 }
 
-export default function SplineViewer({ url, className = '' }: SplineViewerProps) {
+export default function SplineViewer({ 
+  url = 'https://prod.spline.design/JSRfrdvgsrn49EQP/scene.splinecode',
+  className = '' 
+}: SplineViewerProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const { isMobile } = useResponsive();
@@ -28,20 +31,34 @@ export default function SplineViewer({ url, className = '' }: SplineViewerProps)
       if (!isLoaded) {
         setHasError(true);
       }
-    }, 10000); // Set error after 10 seconds if not loaded
+    }, 15000); // Increased timeout to 15 seconds
 
     return () => clearTimeout(timeout);
   }, [isLoaded]);
 
   useEffect(() => {
-    // Add event listeners to the spline-viewer element
-    const viewer = document.querySelector('spline-viewer');
-    if (viewer) {
-      viewer.addEventListener('load', handleLoad);
-      viewer.addEventListener('error', handleError);
-    }
+    const loadSpline = async () => {
+      try {
+        // Reset states when trying to load
+        setHasError(false);
+        setIsLoaded(false);
+
+        // Add event listeners to the spline-viewer element
+        const viewer = document.querySelector('spline-viewer');
+        if (viewer) {
+          viewer.addEventListener('load', handleLoad);
+          viewer.addEventListener('error', handleError);
+        }
+      } catch (error) {
+        console.error('Error loading Spline:', error);
+        setHasError(true);
+      }
+    };
+
+    loadSpline();
 
     return () => {
+      const viewer = document.querySelector('spline-viewer');
       if (viewer) {
         viewer.removeEventListener('load', handleLoad);
         viewer.removeEventListener('error', handleError);
@@ -50,47 +67,39 @@ export default function SplineViewer({ url, className = '' }: SplineViewerProps)
   }, [handleLoad, handleError]);
 
   return (
-    <div className={`relative ${className}`}>
+    <>
       <Script 
-        type="module" 
-        src="https://unpkg.com/@splinetool/viewer@1.9.56/build/spline-viewer.js" 
-        strategy="afterInteractive"
+        src="https://unpkg.com/@splinetool/viewer@1.0.50/build/spline-viewer.js"
+        strategy="beforeInteractive"
         onError={handleError}
       />
-      
-      {/* Loading state */}
-      {!isLoaded && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-        </div>
-      )}
-
-      {/* Error state */}
-      {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <div className="text-center px-4">
-            <p className="text-red-400 mb-2">Failed to load 3D scene</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="text-sm text-white/70 hover:text-white underline"
+      <div className={`relative w-full h-full ${className}`}>
+        {hasError ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <p className="text-red-500 mb-2">Failed to load 3D scene</p>
+            <button
+              onClick={() => {
+                setHasError(false);
+                setIsLoaded(false);
+                const viewer = document.querySelector('spline-viewer');
+                if (viewer) {
+                  viewer.setAttribute('url', url);
+                }
+              }}
+              className="text-sm text-white/60 hover:text-white underline"
             >
-              Reload page
+              Reload scene
             </button>
           </div>
-        </div>
-      )}
-
-      {/* Spline Viewer */}
-      <spline-viewer 
-        url={url}
-        className="w-full h-full"
-        style={{ 
-          width: '100%', 
-          height: '100%',
-          pointerEvents: isMobile ? 'none' : 'auto', // Disable interaction on mobile
-          opacity: hasError ? '0.3' : '1'
-        }}
-      />
-    </div>
+        ) : (
+          <spline-viewer
+            url={url}
+            loading-anim
+            loading="lazy"
+            className={`w-full h-full ${!isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+          />
+        )}
+      </div>
+    </>
   );
 }

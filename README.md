@@ -10,7 +10,7 @@
 
 A modern, enterprise-grade portfolio and digital services platform leveraging cutting-edge web technologies for optimal performance, scalability, and user experience.
 
-[Live Demo](https://malikarbab.de) · [Documentation](https://docs.malikarbab.de) · [Report Bug](https://github.com/yourusername/malik-portfolio/issues)
+[Live Demo](https://malikarbab.de) · [Documentation](https://github.com/Absumere/malik-portfolio/wiki) · [Report Issue](https://github.com/Absumere/malik-portfolio/issues)
 
 </div>
 

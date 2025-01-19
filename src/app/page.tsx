@@ -42,35 +42,33 @@ export default function Home() {
       </Script>
       <div className="relative min-h-screen flex flex-col">
         {/* Hero Section */}
-        <div className="flex-1 relative overflow-hidden flex flex-col justify-start">
+        <div className="flex-1 relative overflow-hidden flex flex-col justify-center items-center">
           {/* Content */}
-          <div className="relative pt-20 sm:pt-24 md:pt-32 px-4 sm:px-6 md:px-8 max-w-4xl mx-auto text-center z-20">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight animate-scale-in mb-4 sm:mb-6">
+          <div className="relative px-4 sm:px-6 md:px-8 max-w-4xl mx-auto text-center z-20">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight animate-scale-in mb-6 sm:mb-8">
               Digital Art & Creative Development
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10">
+            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 sm:mb-12">
               Delivering advanced technical solutions in real-time graphics, machine learning, and interactive systems
             </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mb-12 sm:mb-16">
-              <Link 
-                href="/portfolio" 
-                className="px-8 py-3 bg-white text-black rounded-full font-medium hover:scale-105 transition-transform text-base"
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link
+                href="/portfolio"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-black bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
               >
                 View Portfolio
               </Link>
-              <Link 
-                href="/ai-tools" 
-                className="px-8 py-3 border border-white/20 rounded-full font-medium hover:border-white/40 hover:scale-105 transition-all text-base"
+              <Link
+                href="/ai-tools"
+                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
               >
                 Explore AI Tools
               </Link>
             </div>
           </div>
 
-          {/* Single Spline Scene with Gradient Overlay */}
-          <div className="relative flex-1 min-h-[60vh] w-full">
+          {/* Background */}
+          <div className="absolute inset-0 z-10">
             <SplineViewer 
               url="https://prod.spline.design/JSRfrdvgsrn49EQP/scene.splinecode"
               className="w-full h-full"
