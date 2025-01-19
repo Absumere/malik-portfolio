@@ -33,7 +33,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'malik-portfolio.vercel.app']
+    }
   },
   async headers() {
     return [
