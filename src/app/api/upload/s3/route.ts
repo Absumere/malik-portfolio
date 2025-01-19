@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
 import { nanoid } from 'nanoid';
 
-// Keep edge runtime since we're not using NextAuth anymore
-export const runtime = 'edge';
+// Change to nodejs runtime since we're using AWS SDK
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
