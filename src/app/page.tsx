@@ -2,33 +2,19 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+// Import SplineScene with no SSR
+const SplineScene = dynamic(() => import('@/components/SplineScene'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-0 bg-black flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+    </div>
+  ),
+});
 
 export default function Home() {
-  const [splineError, setSplineError] = useState(false);
-
-  useEffect(() => {
-    const loadSpline = async () => {
-      try {
-        const Spline = (await import('@splinetool/react-spline')).default;
-        const splineContainer = document.getElementById('spline-container');
-        
-        if (splineContainer) {
-          const app = new Spline({
-            scene: 'https://prod.spline.design/xAToIHjdw3b5zWv7/scene.splinecode',
-            container: splineContainer
-          });
-          await app.load();
-        }
-      } catch (error) {
-        console.error('Failed to load Spline:', error);
-        setSplineError(true);
-      }
-    };
-
-    loadSpline();
-  }, []);
-
   return (
     <>
       <Script id="structured-data" type="application/ld+json">
@@ -65,19 +51,10 @@ export default function Home() {
         })}
       </Script>
 
-      <div className="fixed inset-0 z-0 bg-black">
-        <div 
-          id="spline-container" 
-          className="w-full h-full"
-          style={{ opacity: splineError ? '0.5' : '1' }}
-        />
-        {splineError && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-white/70">Interactive background temporarily unavailable</p>
-          </div>
-        )}
-      </div>
+      {/* Background Scene */}
+      <SplineScene />
 
+      {/* Main Content */}
       <main className="relative min-h-screen">
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-8">
           <div className="max-w-4xl w-full text-center mt-32 mb-16">
