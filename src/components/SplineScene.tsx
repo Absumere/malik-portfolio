@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import Spline to prevent SSR issues
-const Spline = dynamic(() => import('@splinetool/react-spline/next'), {
+const Spline = dynamic(() => import('@splinetool/react-spline'), {
   ssr: false,
   loading: () => <LoadingSpinner />
 });
