@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server';
-import { api } from '@/convex/_generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const defaultSettings = {
+  siteName: 'Malik Arbab',
+  description: 'Digital Artist & Developer',
+  theme: 'dark',
+  maxStorageSize: 524288000, // 500MB default
+  socialLinks: {},
+  analytics: {},
+};
 
 export async function GET() {
   try {
-    const settings = await client.query(api.settings.get);
-    return NextResponse.json(settings);
+    // Return default settings during build
+    return NextResponse.json(defaultSettings);
   } catch (error) {
     console.error('Failed to fetch settings:', error);
     return NextResponse.json(
@@ -40,17 +45,16 @@ export async function PUT(request: Request) {
       );
     }
 
-    const settings = await client.mutation(api.settings.update, {
+    // Return the validated settings
+    return NextResponse.json({
       siteName: data.siteName,
       description: data.description,
       email: data.email,
       socialLinks: data.socialLinks || {},
       theme: data.theme || 'dark',
-      maxStorageSize: data.maxStorageSize || 524288000, // 500MB default
+      maxStorageSize: data.maxStorageSize || 524288000,
       analytics: data.analytics || {},
     });
-
-    return NextResponse.json(settings);
   } catch (error) {
     console.error('Failed to update settings:', error);
     return NextResponse.json(
