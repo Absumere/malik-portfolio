@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { XMLParser } from 'fast-xml-parser';
-import { getB2DownloadUrl } from '@/utils/b2';
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 export const runtime = 'edge';
@@ -31,8 +30,9 @@ export async function GET(request: NextRequest) {
     const bucketName = process.env.B2_BUCKET_NAME;
     const applicationKeyId = process.env.B2_APPLICATION_KEY_ID;
     const applicationKey = process.env.B2_APPLICATION_KEY;
+    const cdnDomain = process.env.NEXT_PUBLIC_CLOUDFLARE_DOMAIN;
 
-    if (!endpoint || !bucketName || !applicationKeyId || !applicationKey) {
+    if (!endpoint || !bucketName || !applicationKeyId || !applicationKey || !cdnDomain) {
       throw new Error('Missing required environment variables');
     }
 
@@ -61,31 +61,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([], { headers });
     }
 
-    const files: B2FileInfo[] = await Promise.all(
-      response.Contents.map(async (content) => {
-        if (!content.Key) return null;
-        try {
-          const url = await getB2DownloadUrl(content.Key);
-          return {
-            fileName: content.Key,
-            contentType: content.Key.split('.').pop()?.toLowerCase() || 'application/octet-stream',
-            uploadTimestamp: content.LastModified?.getTime() || Date.now(),
-            fileId: content.ETag?.replace(/['"]/g, '') || content.Key,
-            url,
-          };
-        } catch (error) {
-          console.error(`Error processing file ${content.Key}:`, error);
-          return null;
-        }
+    const files: B2FileInfo[] = response.Contents
+      .filter(content => content.Key)
+      .map(content => {
+        const key = content.Key!;
+        return {
+          fileName: key,
+          contentType: key.split('.').pop()?.toLowerCase() || 'application/octet-stream',
+          uploadTimestamp: content.LastModified?.getTime() || Date.now(),
+          fileId: content.ETag?.replace(/['"]/g, '') || key,
+          url: `https://${cdnDomain}/${key}`,
+        };
       })
-    );
-
-    const validFiles = files
-      .filter((file): file is NonNullable<typeof file> => file !== null)
       .sort((a, b) => b.uploadTimestamp - a.uploadTimestamp);
 
-    console.log(`Found ${validFiles.length} valid files`);
-    return NextResponse.json(validFiles, { headers });
+    console.log(`Found ${files.length} files`);
+    return NextResponse.json(files, { headers });
   } catch (error: any) {
     console.error('API Error:', error);
     return NextResponse.json(
