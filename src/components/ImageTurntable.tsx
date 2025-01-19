@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
@@ -54,6 +53,10 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
     });
   };
 
+  const handleImageLoad = (url: string) => {
+    setLoadedImages(prev => new Set(prev).add(url));
+  };
+
   // Preload next and previous images
   useEffect(() => {
     const preloadImage = (url: string) => {
@@ -72,80 +75,73 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
   }, [currentIndex, images]);
 
   if (!images.length) {
-    return null;
+    return (
+      <div className="w-full aspect-[3/2] bg-neutral-900 rounded-lg flex items-center justify-center">
+        <p className="text-neutral-400">No images available</p>
+      </div>
+    );
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-8rem)]">
-      <div className="absolute inset-0 flex items-center justify-center">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={currentIndex}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 },
-            }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={1}
-            onDragEnd={(e, { offset, velocity }) => {
-              const swipe = swipePower(offset.x, velocity.x);
-              if (swipe < -swipeConfidenceThreshold) {
-                paginate(1);
-              } else if (swipe > swipeConfidenceThreshold) {
-                paginate(-1);
-              }
-            }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            <div className="relative w-[85%] h-[calc(100%-2rem)]">
-              <Image
-                src={images[currentIndex].url}
-                alt=""
-                fill
-                className="object-contain"
-                priority={true}
-                quality={100}
-              />
-            </div>
-          </motion.div>
-        </AnimatePresence>
+    <div className="relative w-full aspect-[3/2] bg-neutral-900 rounded-lg overflow-hidden">
+      <AnimatePresence initial={false} custom={direction}>
+        <motion.div
+          key={currentIndex}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{
+            x: { type: "spring", stiffness: 300, damping: 30 },
+            opacity: { duration: 0.2 },
+          }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={1}
+          onDragEnd={(e, { offset, velocity }) => {
+            const swipe = swipePower(offset.x, velocity.x);
 
-        {/* Navigation buttons */}
-        <button
-          className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/75 hover:text-white hover:bg-black/75 transition-colors z-10"
-          onClick={() => paginate(-1)}
+            if (swipe < -swipeConfidenceThreshold) {
+              paginate(1);
+            } else if (swipe > swipeConfidenceThreshold) {
+              paginate(-1);
+            }
+          }}
+          className="absolute inset-0 w-full h-full flex items-center justify-center"
         >
-          <ChevronLeftIcon className="w-6 h-6" />
-        </button>
-        <button
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white/75 hover:text-white hover:bg-black/75 transition-colors z-10"
-          onClick={() => paginate(1)}
-        >
-          <ChevronRightIcon className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Progress dots - moved outside the main container and positioned at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-2 py-4 bg-gradient-to-t from-black/50 to-transparent">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-white' : 'bg-white/30'
+          {/* Use plain img tag for CDN URLs */}
+          <img
+            src={images[currentIndex].url}
+            alt={images[currentIndex].fileName}
+            className={`w-full h-full object-contain transition-opacity duration-300 ${
+              loadedImages.has(images[currentIndex].url) ? 'opacity-100' : 'opacity-0'
             }`}
-            onClick={() => {
-              setDirection(index > currentIndex ? 1 : -1);
-              setCurrentIndex(index);
-            }}
+            onLoad={() => handleImageLoad(images[currentIndex].url)}
           />
-        ))}
-      </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Navigation buttons */}
+      <button
+        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 transition-colors"
+        onClick={() => paginate(-1)}
+      >
+        <ChevronLeftIcon className="w-6 h-6 text-white" />
+      </button>
+      <button
+        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 transition-colors"
+        onClick={() => paginate(1)}
+      >
+        <ChevronRightIcon className="w-6 h-6 text-white" />
+      </button>
+
+      {/* Loading indicator */}
+      {!loadedImages.has(images[currentIndex].url) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+        </div>
+      )}
     </div>
   );
 }
