@@ -1,8 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import Spline from '@splinetool/react-spline/next';
+import dynamic from 'next/dynamic';
 import Script from 'next/script';
+import { Suspense } from 'react';
+
+// Dynamically import Spline without SSR
+const Spline = dynamic(() => import('@splinetool/react-spline'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function Home() {
   return (
@@ -40,18 +47,23 @@ export default function Home() {
           }
         })}
       </Script>
-      <main className="relative min-h-screen">
-        {/* Background Spline Scene */}
-        <div className="absolute inset-0 z-0">
-          <Spline
-            scene="https://prod.spline.design/xAToIHjdw3b5zWv7/scene.splinecode"
-            className="w-full h-full"
-          />
-        </div>
 
-        {/* Content Overlay */}
+      <div className="fixed inset-0 z-0 bg-black">
+        <Suspense fallback={
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+          </div>
+        }>
+          <Spline 
+            scene="https://prod.spline.design/xAToIHjdw3b5zWv7/scene.splinecode"
+            style={{ width: '100%', height: '100%' }}
+          />
+        </Suspense>
+      </div>
+
+      <main className="relative min-h-screen">
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-8">
-          <div className="max-w-4xl w-full text-center mt-20">
+          <div className="max-w-4xl w-full text-center mt-32 mb-16">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight animate-scale-in mb-6 sm:mb-8">
               Digital Art & Creative Development
             </h1>
