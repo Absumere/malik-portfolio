@@ -2,17 +2,7 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
-import dynamic from 'next/dynamic';
-
-// Import SplineScene with no SSR
-const SplineScene = dynamic(() => import('@/components/SplineScene'), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-0 bg-black flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-    </div>
-  ),
-});
+import SplineScene from '@/components/SplineScene';
 
 export default function Home() {
   return (
