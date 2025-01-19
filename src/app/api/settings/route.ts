@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { api } from '@/convex/_generated/api';
+import { ConvexHttpClient } from 'convex/browser';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
+const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
 export async function GET() {
   try {
-    const settings = await prisma.siteSettings.findFirst();
+    const settings = await client.query(api.settings.get);
     return NextResponse.json(settings);
   } catch (error) {
     console.error('Failed to fetch settings:', error);
@@ -37,26 +40,14 @@ export async function PUT(request: Request) {
       );
     }
 
-    const settings = await prisma.siteSettings.upsert({
-      where: { id: 1 },
-      update: {
-        siteName: data.siteName,
-        description: data.description,
-        email: data.email,
-        socialLinks: data.socialLinks || {},
-        theme: data.theme || 'dark',
-        maxStorageSize: data.maxStorageSize || 524288000, // 500MB default
-        analytics: data.analytics || {},
-      },
-      create: {
-        siteName: data.siteName,
-        description: data.description,
-        email: data.email,
-        socialLinks: data.socialLinks || {},
-        theme: data.theme || 'dark',
-        maxStorageSize: data.maxStorageSize || 524288000,
-        analytics: data.analytics || {},
-      },
+    const settings = await client.mutation(api.settings.update, {
+      siteName: data.siteName,
+      description: data.description,
+      email: data.email,
+      socialLinks: data.socialLinks || {},
+      theme: data.theme || 'dark',
+      maxStorageSize: data.maxStorageSize || 524288000, // 500MB default
+      analytics: data.analytics || {},
     });
 
     return NextResponse.json(settings);
