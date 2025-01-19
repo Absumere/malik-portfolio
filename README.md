@@ -2,9 +2,9 @@
 
 <div align="center">
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.1.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Convex](https://img.shields.io/badge/Convex-1.17.4-ff69b4?style=for-the-badge)](https://www.convex.dev/)
+[![Convex](https://img.shields.io/badge/Convex-1.8.0-ff69b4?style=for-the-badge)](https://www.convex.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
 
@@ -21,15 +21,17 @@ A modern, enterprise-grade portfolio and digital services platform leveraging cu
 - **Real-time Data Sync**: Leveraging Convex's real-time capabilities for instant updates
 - **Enterprise-grade Security**: Multi-layer security with Clerk authentication and RBAC
 - **Scalable Infrastructure**: Cloud-native architecture with automated scaling
-- **Analytics & Monitoring**: Comprehensive tracking and performance monitoring
+- **Analytics & Monitoring**: Comprehensive tracking with Mixpanel and Chart.js
 - **Multi-payment Gateway**: Integrated Stripe payment processing
+- **Advanced Media Processing**: Mux video platform and Backblaze B2 storage
 
 ## 🚀 Tech Stack
 
 ### Core Architecture
-- **Next.js 15.1.3**: Server-side rendering and static site generation
+- **Next.js 15.1.4**: Server-side rendering and static site generation
   - App Router for enhanced routing capabilities
   - Server Components for optimal performance
+  - Edge Runtime for API routes
   - Streaming SSR for improved TTFB
 - **React 18.2.0**: UI library with concurrent features
   - Suspense for data fetching
@@ -41,7 +43,7 @@ A modern, enterprise-grade portfolio and digital services platform leveraging cu
   - Advanced type utilities
 
 ### Backend Infrastructure
-- **Convex**: Real-time serverless database and backend
+- **Convex 1.8.0**: Real-time serverless database and backend
   - Optimistic updates
   - Real-time subscriptions
   - Automatic scaling
@@ -50,7 +52,7 @@ A modern, enterprise-grade portfolio and digital services platform leveraging cu
   - Transaction support
 
 ### Authentication & Security
-- **Clerk**: Enterprise authentication system
+- **Clerk 6.9.9**: Enterprise authentication system
   - Multi-factor authentication
   - Social login providers
   - JWT token management
@@ -64,34 +66,36 @@ A modern, enterprise-grade portfolio and digital services platform leveraging cu
   - Global CDN delivery
   - Video optimization
 - **Backblaze B2**: Enterprise object storage
+  - S3-compatible API
+  - Cloudflare CDN integration
   - Infinite scalability
   - Automatic replication
   - Data lifecycle management
 
 ### Frontend Architecture
-- **Tailwind CSS**: Utility-first styling system
+- **Tailwind CSS 3.4.1**: Utility-first styling system
   - Custom design system
   - Dark mode support
   - Responsive design
   - Performance optimization
-- **Three.js & React Three Fiber**: 3D rendering
-  - Custom shaders
-  - Performance optimizations
-  - Dynamic loading
+- **HeadlessUI & Radix UI**: Accessible component libraries
+  - ARIA compliance
+  - Keyboard navigation
+  - Screen reader support
 - **GSAP & Framer Motion**: Animation systems
   - Hardware-accelerated animations
   - ScrollTrigger integration
   - Custom animation hooks
+- **Tremor**: Analytics and dashboard components
+  - Interactive charts
+  - Data visualization
+  - Real-time updates
 
 ### Development & DevOps
 - **ESLint & Prettier**: Code quality tools
   - Custom rule configurations
   - Git hooks integration
   - Automatic formatting
-- **Husky**: Git hooks management
-  - Pre-commit checks
-  - Automated testing
-  - Lint staging
 
 ## 🏗️ Architecture Overview
 
@@ -103,12 +107,14 @@ graph TD
     D --> E[Data Layer]
     B --> F[Authentication]
     F --> G[Clerk]
-    B --> I[Media Services]
-    I --> J[Mux]
-    I --> K[Backblaze B2]
-    D --> L[Analytics]
-    D --> M[Payment Processing]
-    M --> N[Stripe]
+    B --> H[Media Services]
+    H --> I[Mux Video]
+    H --> J[Backblaze B2]
+    B --> K[Analytics]
+    K --> L[Mixpanel]
+    K --> M[Chart.js]
+    D --> N[Payment Processing]
+    N --> O[Stripe]
 ```
 
 ## 💻 Development
@@ -151,8 +157,17 @@ STRIPE_SECRET_KEY=
 # Media Services
 MUX_TOKEN_ID=
 MUX_TOKEN_SECRET=
-BACKBLAZE_KEY_ID=
-BACKBLAZE_APPLICATION_KEY=
+
+# Storage
+B2_APPLICATION_KEY_ID=
+B2_APPLICATION_KEY=
+B2_BUCKET_NAME=
+B2_BUCKET_ID=
+B2_ENDPOINT=
+B2_CLOUDFLARE_URL=
+
+# Analytics
+NEXT_PUBLIC_MIXPANEL_TOKEN=
 ```
 
 ## 🚀 Deployment
@@ -174,7 +189,7 @@ npm run convex:deploy
 - **Backend**: Convex Cloud
 - **Media**: Mux & Backblaze B2
 - **Database**: Convex Distributed Database
-- **CDN**: Vercel Edge Cache
+- **CDN**: Cloudflare & Vercel Edge
 
 ## 📈 Performance Metrics
 
@@ -199,6 +214,6 @@ npm run convex:deploy
 
 ## 📝 License & Legal
 
-Copyright 2025 Malik Arbab. All rights reserved.
+Copyright 2024 Malik Arbab. All rights reserved.
 
 This software is proprietary and confidential. Unauthorized copying, modification, distribution, or use of this software, via any medium, is strictly prohibited.
