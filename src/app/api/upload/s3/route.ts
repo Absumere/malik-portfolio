@@ -9,9 +9,10 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
-const AWS_BUCKET = process.env.AWS_BUCKET || '';
+const AWS_BUCKET = process.env.AWS_BUCKET_NAME || '';
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || '';
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || '';
+const CLOUDFLARE_DOMAIN = process.env.NEXT_PUBLIC_CLOUDFLARE_DOMAIN || 'cdn.malikarbab.de';
 
 const s3Client = new S3Client({
   region: AWS_REGION,
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
     
     if (!filename || !contentType) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Filename and content type are required' },
         { status: 400 }
       );
     }
@@ -47,15 +48,19 @@ export async function POST(request: Request) {
       Bucket: AWS_BUCKET,
       Key: key,
       ContentType: contentType,
-      ACL: 'public-read', // Make the uploaded file public
+      ACL: 'public-read',
+      CacheControl: 'public, max-age=31536000', // 1 year cache
     });
 
     const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-    const publicUrl = `https://${AWS_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+    
+    // Return both the upload URL and the Cloudflare CDN URL
+    const cdnUrl = `https://${CLOUDFLARE_DOMAIN}/${key}`;
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       uploadUrl: signedUrl,
-      publicUrl: publicUrl
+      publicUrl: cdnUrl,
+      key: key
     });
   } catch (error) {
     console.error('Error generating signed URL:', error);
