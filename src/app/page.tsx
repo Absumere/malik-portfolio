@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
-import SplineScene from '@/components/SplineScene';
+import SplineViewer from '@/components/SplineViewer';
 
 export default function Home() {
   return (
@@ -42,7 +42,7 @@ export default function Home() {
       </Script>
 
       {/* Background Scene */}
-      <SplineScene />
+      <SplineViewer />
 
       {/* Main Content */}
       <main className="relative min-h-screen">
