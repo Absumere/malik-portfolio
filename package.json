@@ -12,11 +12,14 @@
     "convex:deploy": "convex deploy"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.515.0",
+    "@aws-sdk/s3-request-presigner": "^3.515.0",
     "@clerk/nextjs": "^6.9.9",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.2.0",
     "@mux/mux-node": "^9.0.1",
     "@mux/mux-player-react": "^3.2.4",
+    "@prisma/client": "^5.9.1",
     "@radix-ui/react-tabs": "^1.1.2",
     "@splinetool/react-spline": "^2.2.6",
     "@splinetool/runtime": "^1.0.17",
@@ -54,6 +57,7 @@
     "eslint-config-next": "14.0.4",
     "postcss": "^8.4.32",
     "prettier": "^3.1.1",
+    "prisma": "^5.9.1",
     "typescript": "^5.3.3"
   },
   "overrides": {
