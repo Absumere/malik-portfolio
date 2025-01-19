@@ -26,54 +26,25 @@ export default function SplineViewer({
     setHasError(true);
   }, []);
 
+  // Reset error state when component mounts or URL changes
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (!isLoaded) {
-        setHasError(true);
-      }
-    }, 15000); // Increased timeout to 15 seconds
-
-    return () => clearTimeout(timeout);
-  }, [isLoaded]);
-
-  useEffect(() => {
-    const loadSpline = async () => {
-      try {
-        // Reset states when trying to load
-        setHasError(false);
-        setIsLoaded(false);
-
-        // Add event listeners to the spline-viewer element
-        const viewer = document.querySelector('spline-viewer');
-        if (viewer) {
-          viewer.addEventListener('load', handleLoad);
-          viewer.addEventListener('error', handleError);
-        }
-      } catch (error) {
-        console.error('Error loading Spline:', error);
-        setHasError(true);
-      }
-    };
-
-    loadSpline();
-
-    return () => {
-      const viewer = document.querySelector('spline-viewer');
-      if (viewer) {
-        viewer.removeEventListener('load', handleLoad);
-        viewer.removeEventListener('error', handleError);
-      }
-    };
-  }, [handleLoad, handleError]);
+    setHasError(false);
+    setIsLoaded(false);
+  }, [url]);
 
   return (
     <>
       <Script 
-        src="https://unpkg.com/@splinetool/viewer@1.0.50/build/spline-viewer.js"
+        src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"
         strategy="beforeInteractive"
-        onError={handleError}
       />
       <div className={`relative w-full h-full ${className}`}>
+        {!isLoaded && !hasError && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+          </div>
+        )}
+        
         {hasError ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
             <p className="text-red-500 mb-2">Failed to load 3D scene</p>
@@ -83,7 +54,11 @@ export default function SplineViewer({
                 setIsLoaded(false);
                 const viewer = document.querySelector('spline-viewer');
                 if (viewer) {
-                  viewer.setAttribute('url', url);
+                  viewer.remove();
+                  const newViewer = document.createElement('spline-viewer');
+                  newViewer.setAttribute('url', url);
+                  newViewer.setAttribute('class', `w-full h-full ${!isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`);
+                  viewer.parentElement?.appendChild(newViewer);
                 }
               }}
               className="text-sm text-white/60 hover:text-white underline"
@@ -94,9 +69,17 @@ export default function SplineViewer({
         ) : (
           <spline-viewer
             url={url}
-            loading-anim
             loading="lazy"
-            className={`w-full h-full ${!isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+            events-target="global"
+            onLoad={handleLoad}
+            onError={handleError}
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              opacity: isLoaded ? '1' : '0',
+              transition: 'opacity 0.5s ease-in-out',
+              pointerEvents: isMobile ? 'none' : 'auto'
+            }}
           />
         )}
       </div>

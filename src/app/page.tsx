@@ -42,16 +42,16 @@ export default function Home() {
       </Script>
       <div className="relative min-h-screen flex flex-col">
         {/* Hero Section */}
-        <div className="flex-1 relative overflow-hidden flex flex-col justify-center items-center">
+        <div className="flex-1 relative overflow-hidden flex flex-col">
           {/* Content */}
-          <div className="relative px-4 sm:px-6 md:px-8 max-w-4xl mx-auto text-center z-20">
+          <div className="flex flex-col items-center justify-center flex-1 px-4 sm:px-6 md:px-8 max-w-4xl mx-auto text-center z-20">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight animate-scale-in mb-6 sm:mb-8">
               Digital Art & Creative Development
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 sm:mb-12">
               Delivering advanced technical solutions in real-time graphics, machine learning, and interactive systems
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <Link
                 href="/portfolio"
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-black bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
@@ -67,8 +67,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Background */}
-          <div className="absolute inset-0 z-10">
+          {/* Spline Scene */}
+          <div className="w-full h-[50vh] md:h-[60vh]">
             <SplineViewer 
               url="https://prod.spline.design/JSRfrdvgsrn49EQP/scene.splinecode"
               className="w-full h-full"
