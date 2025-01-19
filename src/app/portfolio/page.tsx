@@ -13,7 +13,7 @@ interface B2Image {
 }
 
 export default function PortfolioPage() {
-  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('videos');
+  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
   const [images, setImages] = useState<B2Image[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,24 +23,30 @@ export default function PortfolioPage() {
       if (activeTab !== 'images') return;
       
       try {
+        console.log('Fetching images...');
         setLoading(true);
         const response = await fetch('/api/images');
         const data = await response.json();
+        
+        console.log('Response:', { status: response.status, data });
         
         if (!response.ok) {
           console.error('API Error:', data);
           throw new Error(data.details || 'Failed to fetch images');
         }
         
-        if (Array.isArray(data)) {
-          // Sort images by upload timestamp
-          const sortedImages = [...data].sort((a, b) => 
-            b.uploadTimestamp - a.uploadTimestamp
-          );
-          setImages(sortedImages);
-        } else {
-          throw new Error('Invalid data format');
+        if (!Array.isArray(data)) {
+          console.error('Invalid data format:', data);
+          throw new Error('Invalid data format received from server');
         }
+
+        // Sort images by upload timestamp
+        const sortedImages = [...data].sort((a, b) => 
+          b.uploadTimestamp - a.uploadTimestamp
+        );
+        
+        console.log('Sorted images:', sortedImages);
+        setImages(sortedImages);
       } catch (error) {
         console.error('Error fetching images:', error);
         setError(error instanceof Error ? error.message : 'Failed to load images');
@@ -53,50 +59,59 @@ export default function PortfolioPage() {
   }, [activeTab]);
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="w-full mx-auto px-4 py-16">
-        <div className="mb-8">
-          <h1 className="text-4xl font-light tracking-tight">Portfolio</h1>
-          <p className="text-neutral-400 text-lg">
-            A collection of my creative work in video and image formats
-          </p>
+    <div className="min-h-screen bg-black text-white py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-light mb-4">
+          A collection of my creative work in video and image formats
+        </h1>
+
+        {/* Tabs */}
+        <div className="flex gap-4 mb-8">
+          <button
+            onClick={() => setActiveTab('videos')}
+            className={`px-4 py-2 rounded-sm transition-colors ${
+              activeTab === 'videos'
+                ? 'bg-white text-black'
+                : 'bg-[#111111] text-white hover:bg-[#222222]'
+            }`}
+          >
+            Videos
+          </button>
+          <button
+            onClick={() => setActiveTab('images')}
+            className={`px-4 py-2 rounded-sm transition-colors ${
+              activeTab === 'images'
+                ? 'bg-white text-black'
+                : 'bg-[#111111] text-white hover:bg-[#222222]'
+            }`}
+          >
+            Images
+          </button>
         </div>
 
-        <div className="border-b border-[#222222] mb-12">
-          <div className="flex gap-8">
-            {['Videos', 'Images'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab.toLowerCase())}
-                className={`pb-4 text-lg ${
-                  activeTab === tab.toLowerCase()
-                    ? 'text-white border-b-2 border-white'
-                    : 'text-neutral-400 hover:text-white/80'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+        {/* Content */}
+        {activeTab === 'videos' ? (
+          <VideoGallery />
+        ) : (
+          <div>
+            {error ? (
+              <div className="text-red-500 p-4 rounded-lg bg-red-500/10">
+                Error: {error}
+              </div>
+            ) : loading ? (
+              <div className="w-full aspect-[3/2] bg-neutral-900 rounded-lg flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+              </div>
+            ) : images.length === 0 ? (
+              <div className="w-full aspect-[3/2] bg-neutral-900 rounded-lg flex items-center justify-center">
+                <p className="text-neutral-400">No images available</p>
+              </div>
+            ) : (
+              <ImageTurntable images={images} />
+            )}
           </div>
-        </div>
-
-        {activeTab === 'videos' && <VideoGallery />}
-        {activeTab === 'images' && (
-          <>
-            {loading && (
-              <div className="flex justify-center items-center min-h-[600px]">
-                <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-              </div>
-            )}
-            {error && (
-              <div className="flex justify-center items-center min-h-[600px] text-red-500">
-                <p>{error}</p>
-              </div>
-            )}
-            {!loading && !error && images.length > 0 && <ImageTurntable images={images} />}
-          </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

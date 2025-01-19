@@ -33,10 +33,22 @@ export async function GET(request: NextRequest) {
     const cdnDomain = process.env.NEXT_PUBLIC_CLOUDFLARE_DOMAIN;
 
     if (!endpoint || !bucketName || !applicationKeyId || !applicationKey || !cdnDomain) {
+      console.error('Missing environment variables:', {
+        endpoint: !!endpoint,
+        bucketName: !!bucketName,
+        applicationKeyId: !!applicationKeyId,
+        applicationKey: !!applicationKey,
+        cdnDomain: !!cdnDomain
+      });
       throw new Error('Missing required environment variables');
     }
 
-    console.log('Creating S3 client...');
+    console.log('Creating S3 client...', {
+      endpoint,
+      region: 'eu-central-003',
+      bucketName
+    });
+
     const client = new S3Client({
       endpoint,
       region: 'eu-central-003',
@@ -54,7 +66,10 @@ export async function GET(request: NextRequest) {
     });
 
     const response = await client.send(command);
-    console.log('Got response from B2');
+    console.log('Got response from B2:', {
+      success: !!response,
+      filesCount: response.Contents?.length || 0
+    });
 
     if (!response.Contents) {
       console.log('No files found in bucket');
@@ -75,10 +90,15 @@ export async function GET(request: NextRequest) {
       })
       .sort((a, b) => b.uploadTimestamp - a.uploadTimestamp);
 
-    console.log(`Found ${files.length} files`);
+    console.log(`Found ${files.length} files, first file:`, files[0]);
     return NextResponse.json(files, { headers });
   } catch (error: any) {
-    console.error('API Error:', error);
+    console.error('API Error:', {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
     return NextResponse.json(
       { 
         error: 'Failed to fetch files', 
