@@ -61,7 +61,7 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
   }
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto aspect-[3/2] bg-black rounded-lg overflow-hidden group">
+    <div className="relative w-full max-w-5xl mx-auto aspect-[3/2] bg-black rounded-lg overflow-hidden">
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={currentIndex}
@@ -97,18 +97,20 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
       </AnimatePresence>
 
       {/* Navigation Buttons */}
-      <button
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-        onClick={() => paginate(-1)}
-      >
-        <ChevronLeftIcon className="w-6 h-6" />
-      </button>
-      <button
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-        onClick={() => paginate(1)}
-      >
-        <ChevronRightIcon className="w-6 h-6" />
-      </button>
+      <div className="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
+        <button
+          onClick={() => paginate(-1)}
+          className="w-12 h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors pointer-events-auto"
+        >
+          <ChevronLeftIcon className="w-8 h-8" />
+        </button>
+        <button
+          onClick={() => paginate(1)}
+          className="w-12 h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors pointer-events-auto"
+        >
+          <ChevronRightIcon className="w-8 h-8" />
+        </button>
+      </div>
     </div>
   );
 }
