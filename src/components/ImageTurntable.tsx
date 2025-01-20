@@ -76,14 +76,14 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
 
   if (!images.length) {
     return (
-      <div className="w-full aspect-[3/2] bg-neutral-900 rounded-lg flex items-center justify-center">
+      <div className="w-full max-w-5xl mx-auto aspect-[3/2] bg-black rounded-lg flex items-center justify-center">
         <p className="text-neutral-400">No images available</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full aspect-[3/2] bg-neutral-900 rounded-lg overflow-hidden">
+    <div className="relative w-full max-w-5xl mx-auto aspect-[3/2] bg-black rounded-lg overflow-hidden group">
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={currentIndex}
@@ -110,38 +110,36 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
           }}
           className="absolute inset-0 w-full h-full flex items-center justify-center"
         >
-          {/* Use plain img tag for CDN URLs */}
-          <img
-            src={images[currentIndex].url}
-            alt={images[currentIndex].fileName}
-            className={`w-full h-full object-contain transition-opacity duration-300 ${
-              loadedImages.has(images[currentIndex].url) ? 'opacity-100' : 'opacity-0'
-            }`}
-            onLoad={() => handleImageLoad(images[currentIndex].url)}
-          />
+          {loadedImages.has(images[currentIndex].url) ? (
+            <img
+              src={images[currentIndex].url}
+              alt={images[currentIndex].fileName}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+          )}
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation buttons */}
+      {/* Navigation Buttons */}
       <button
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 transition-colors"
+        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
         onClick={() => paginate(-1)}
       >
-        <ChevronLeftIcon className="w-6 h-6 text-white" />
+        <ChevronLeftIcon className="w-6 h-6" />
       </button>
       <button
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 transition-colors"
+        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
         onClick={() => paginate(1)}
       >
-        <ChevronRightIcon className="w-6 h-6 text-white" />
+        <ChevronRightIcon className="w-6 h-6" />
       </button>
 
-      {/* Loading indicator */}
-      {!loadedImages.has(images[currentIndex].url) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-        </div>
-      )}
+      {/* Image Counter */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/50 text-white text-sm">
+        {currentIndex + 1} / {images.length}
+      </div>
     </div>
   );
 }
