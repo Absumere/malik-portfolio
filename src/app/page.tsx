@@ -8,7 +8,7 @@ export default function Home() {
       <div className="w-full max-w-4xl mx-auto -mt-16">
         <div className="space-y-12 text-center">
           <h1 className="space-y-2">
-            <span className="block text-6xl md:text-7xl font-bold tracking-tight text-white">
+            <span className="block text-6xl md:text-7xl font-light tracking-tight text-white">
               Digital Art
             </span>
             <span className="block text-4xl md:text-5xl font-light tracking-wide text-white/90">
