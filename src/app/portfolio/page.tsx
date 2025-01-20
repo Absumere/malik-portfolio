@@ -115,9 +115,13 @@ export default function PortfolioPage() {
             )}
             {!loading && !error && images.length > 0 && (
               <div className="relative">
-                <ImageTurntable images={images} />
-                {/* Fixed Navigation Buttons */}
-                <div className="fixed left-8 top-1/2 -translate-y-1/2 z-50">
+                <ImageTurntable 
+                  images={images} 
+                  currentIndex={currentImageIndex}
+                  onNavigate={setCurrentImageIndex}
+                />
+                {/* Navigation Buttons */}
+                <div className="absolute left-8 top-1/2 -translate-y-1/2">
                   <button
                     onClick={handlePrevImage}
                     className="p-3 bg-black/50 hover:bg-black/70 text-white transition-all rounded-lg"
@@ -126,7 +130,7 @@ export default function PortfolioPage() {
                     <ChevronLeftIcon className="w-8 h-8" strokeWidth={2} />
                   </button>
                 </div>
-                <div className="fixed right-8 top-1/2 -translate-y-1/2 z-50">
+                <div className="absolute right-8 top-1/2 -translate-y-1/2">
                   <button
                     onClick={handleNextImage}
                     className="p-3 bg-black/50 hover:bg-black/70 text-white transition-all rounded-lg"

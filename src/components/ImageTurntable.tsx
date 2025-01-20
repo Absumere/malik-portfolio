@@ -10,10 +10,11 @@ interface B2Image {
 
 interface ImageTurntableProps {
   images: B2Image[];
+  currentIndex: number;
+  onNavigate: (newIndex: number) => void;
 }
 
-export default function ImageTurntable({ images }: ImageTurntableProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export default function ImageTurntable({ images, currentIndex, onNavigate }: ImageTurntableProps) {
   const [direction, setDirection] = useState(0);
 
   const slideVariants = {
@@ -43,12 +44,10 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
 
   const paginate = (newDirection: number) => {
     setDirection(newDirection);
-    setCurrentIndex((prevIndex) => {
-      let newIndex = prevIndex + newDirection;
-      if (newIndex < 0) newIndex = images.length - 1;
-      if (newIndex >= images.length) newIndex = 0;
-      return newIndex;
-    });
+    let newIndex = currentIndex + newDirection;
+    if (newIndex < 0) newIndex = images.length - 1;
+    if (newIndex >= images.length) newIndex = 0;
+    onNavigate(newIndex);
   };
 
   if (!images.length) {
