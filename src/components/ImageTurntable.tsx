@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface B2Image {
   fileName: string;
@@ -95,26 +94,6 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
           />
         </motion.div>
       </AnimatePresence>
-
-      {/* Navigation Buttons */}
-      <div className="absolute inset-y-0 left-0 flex items-center">
-        <button
-          onClick={() => paginate(-1)}
-          className="p-2 bg-black/30 hover:bg-black/50 text-white/70 hover:text-white transition-all"
-          aria-label="Previous image"
-        >
-          <ChevronLeftIcon className="w-8 h-8" />
-        </button>
-      </div>
-      <div className="absolute inset-y-0 right-0 flex items-center">
-        <button
-          onClick={() => paginate(1)}
-          className="p-2 bg-black/30 hover:bg-black/50 text-white/70 hover:text-white transition-all"
-          aria-label="Next image"
-        >
-          <ChevronRightIcon className="w-8 h-8" />
-        </button>
-      </div>
     </div>
   );
 }

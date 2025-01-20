@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import ImageTurntable from '@/components/ImageTurntable';
 import VideoGallery from '@/components/VideoGallery';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface B2Image {
   fileName: string;
@@ -17,6 +18,7 @@ export default function PortfolioPage() {
   const [images, setImages] = useState<B2Image[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -57,6 +59,18 @@ export default function PortfolioPage() {
 
     fetchImages();
   }, [activeTab]);
+
+  const handlePrevImage = () => {
+    if (activeTab === 'images' && images.length > 0) {
+      setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    }
+  };
+
+  const handleNextImage = () => {
+    if (activeTab === 'images' && images.length > 0) {
+      setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }
+  };
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -99,7 +113,30 @@ export default function PortfolioPage() {
                 <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
               </div>
             )}
-            {!loading && !error && images.length > 0 && <ImageTurntable images={images} />}
+            {!loading && !error && images.length > 0 && (
+              <div className="relative">
+                <ImageTurntable images={images} />
+                {/* Fixed Navigation Buttons */}
+                <div className="fixed left-8 top-1/2 -translate-y-1/2 z-50">
+                  <button
+                    onClick={handlePrevImage}
+                    className="p-3 bg-black/50 hover:bg-black/70 text-white transition-all rounded-lg"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeftIcon className="w-8 h-8" strokeWidth={2} />
+                  </button>
+                </div>
+                <div className="fixed right-8 top-1/2 -translate-y-1/2 z-50">
+                  <button
+                    onClick={handleNextImage}
+                    className="p-3 bg-black/50 hover:bg-black/70 text-white transition-all rounded-lg"
+                    aria-label="Next image"
+                  >
+                    <ChevronRightIcon className="w-8 h-8" strokeWidth={2} />
+                  </button>
+                </div>
+              </div>
+            )}
             {!loading && !error && images.length === 0 && (
               <div className="flex justify-center items-center min-h-[600px] text-neutral-400">
                 <p>No images available</p>
