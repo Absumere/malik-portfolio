@@ -114,12 +114,14 @@ export default function PortfolioPage() {
               </div>
             )}
             {!loading && !error && images.length > 0 && (
-              <div className="relative">
-                <ImageTurntable 
-                  images={images} 
-                  currentIndex={currentImageIndex}
-                  onNavigate={setCurrentImageIndex}
-                />
+              <div className="relative w-full h-[calc(100vh-16rem)] flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <ImageTurntable 
+                    images={images} 
+                    currentIndex={currentImageIndex}
+                    onNavigate={setCurrentImageIndex}
+                  />
+                </div>
                 {/* Navigation Buttons */}
                 <div className="absolute left-8 top-1/2 -translate-y-1/2">
                   <button

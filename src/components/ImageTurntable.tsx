@@ -28,7 +28,7 @@ export default function ImageTurntable({ images, currentIndex, onNavigate }: Ima
       x: 0,
       opacity: 1,
       scale: 1,
-    },
+    }),
     exit: (direction: number) => ({
       zIndex: 0,
       x: direction < 0 ? '100%' : '-100%',
@@ -52,14 +52,14 @@ export default function ImageTurntable({ images, currentIndex, onNavigate }: Ima
 
   if (!images.length) {
     return (
-      <div className="w-full max-w-5xl mx-auto aspect-[3/2] bg-black rounded-lg flex items-center justify-center">
+      <div className="w-full h-full bg-black rounded-lg flex items-center justify-center">
         <p className="text-neutral-400">No images available</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto aspect-[3/2] bg-black rounded-lg overflow-hidden">
+    <div className="w-full h-full bg-black rounded-lg overflow-hidden">
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={currentIndex}
@@ -84,12 +84,12 @@ export default function ImageTurntable({ images, currentIndex, onNavigate }: Ima
               paginate(-1);
             }
           }}
-          className="absolute inset-0 w-full h-full flex items-center justify-center"
+          className="w-full h-full flex items-center justify-center p-8"
         >
           <img
             src={images[currentIndex].url}
             alt={images[currentIndex].fileName}
-            className="w-full h-full object-contain"
+            className="max-w-full max-h-full w-auto h-auto object-contain"
           />
         </motion.div>
       </AnimatePresence>
