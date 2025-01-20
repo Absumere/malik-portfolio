@@ -97,18 +97,18 @@ export default function ImageTurntable({ images }: ImageTurntableProps) {
       </AnimatePresence>
 
       {/* Navigation Buttons */}
-      <div className="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
+      <div className="absolute inset-0 flex items-center justify-between px-2">
         <button
           onClick={() => paginate(-1)}
-          className="w-12 h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors pointer-events-auto"
+          className="h-full px-12 flex items-center justify-center text-white/20 hover:text-white/60 transition-colors"
         >
-          <ChevronLeftIcon className="w-8 h-8" />
+          <ChevronLeftIcon className="w-6 h-6" />
         </button>
         <button
           onClick={() => paginate(1)}
-          className="w-12 h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors pointer-events-auto"
+          className="h-full px-12 flex items-center justify-center text-white/20 hover:text-white/60 transition-colors"
         >
-          <ChevronRightIcon className="w-8 h-8" />
+          <ChevronRightIcon className="w-6 h-6" />
         </button>
       </div>
     </div>
