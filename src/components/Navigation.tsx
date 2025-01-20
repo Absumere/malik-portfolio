@@ -8,8 +8,8 @@ import { UserButton } from '@clerk/nextjs';
 import { Menu, X } from 'lucide-react';
 
 const navItems = [
-  { href: '/', label: 'Home' },
   { href: '/portfolio', label: 'Portfolio' },
+  { href: '/shop', label: 'Shop' },
   { href: '/ai-tools', label: 'AI Tools' },
   { href: '/about', label: 'About' },
 ];
