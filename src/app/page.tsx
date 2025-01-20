@@ -3,98 +3,11 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 
-// Perlin noise implementation
-const noise = {
-  grad3: new Float32Array([1,1,0,-1,1,0,1,-1,0,-1,-1,0,
-                          1,0,1,-1,0,1,1,0,-1,-1,0,-1,
-                          0,1,1,0,-1,1,0,1,-1,0,-1,-1]),
-  p: new Uint8Array(256),
-  perm: new Uint8Array(512),
-  
-  seed(seed: number) {
-    if(seed > 0 && seed < 1) seed *= 65536;
-    seed = Math.floor(seed);
-    if(seed < 256) seed |= seed << 8;
-    const p = this.p;
-    for(let i = 0; i < 256; i++) {
-      const v = i & 1 ? ((seed * i) >> 8) & 255 : (seed * i) & 255;
-      p[i] = v;
-    }
-    for(let i = 0; i < 512; i++) {
-      this.perm[i] = p[i & 255];
-    }
-  },
-
-  noise2D(x: number, y: number) {
-    const perm = this.perm;
-    const grad3 = this.grad3;
-
-    const F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
-    const G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
-
-    const s = (x + y) * F2;
-    const i = Math.floor(x + s);
-    const j = Math.floor(y + s);
-    const t = (i + j) * G2;
-    
-    const X0 = i - t;
-    const Y0 = j - t;
-    const x0 = x - X0;
-    const y0 = y - Y0;
-
-    let i1, j1;
-    if(x0 > y0) {
-      i1 = 1;
-      j1 = 0;
-    } else {
-      i1 = 0;
-      j1 = 1;
-    }
-
-    const x1 = x0 - i1 + G2;
-    const y1 = y0 - j1 + G2;
-    const x2 = x0 - 1.0 + 2.0 * G2;
-    const y2 = y0 - 1.0 + 2.0 * G2;
-
-    const ii = i & 255;
-    const jj = j & 255;
-
-    const gi0 = perm[ii + perm[jj]] % 12 * 3;
-    const gi1 = perm[ii + i1 + perm[jj + j1]] % 12 * 3;
-    const gi2 = perm[ii + 1 + perm[jj + 1]] % 12 * 3;
-
-    let n0 = 0.0;
-    let t0 = 0.5 - x0 * x0 - y0 * y0;
-    if(t0 >= 0) {
-      t0 *= t0;
-      n0 = t0 * t0 * (grad3[gi0] * x0 + grad3[gi0 + 1] * y0);
-    }
-
-    let n1 = 0.0;
-    let t1 = 0.5 - x1 * x1 - y1 * y1;
-    if(t1 >= 0) {
-      t1 *= t1;
-      n1 = t1 * t1 * (grad3[gi1] * x1 + grad3[gi1 + 1] * y1);
-    }
-
-    let n2 = 0.0;
-    let t2 = 0.5 - x2 * x2 - y2 * y2;
-    if(t2 >= 0) {
-      t2 *= t2;
-      n2 = t2 * t2 * (grad3[gi2] * x2 + grad3[gi2 + 1] * y2);
-    }
-
-    return 70.0 * (n0 + n1 + n2);
-  }
-};
-
-noise.seed(Math.random());
-
 const GenerativeTitle = ({ children }: { children: React.ReactNode }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-  const particlesRef = useRef<{x: number; y: number; vx: number; vy: number; life: number}[]>([]);
   const timeRef = useRef(0);
+  const frameRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -113,29 +26,66 @@ const GenerativeTitle = ({ children }: { children: React.ReactNode }) => {
     window.addEventListener('resize', updateCanvasSize);
 
     // Initialize particles
-    const numParticles = 200;
-    particlesRef.current = Array.from({ length: numParticles }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: 0,
-      vy: 0,
-      life: Math.random()
-    }));
+    const particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+      life: number;
+    }> = [];
+
+    const createParticle = () => {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        size: Math.random() * 2 + 1,
+        life: Math.random()
+      };
+    };
+
+    // Create initial particles
+    for (let i = 0; i < 150; i++) {
+      particles.push(createParticle());
+    }
+
+    const noise = (x: number, y: number, t: number) => {
+      // Simplified noise function
+      const X = Math.floor(x);
+      const Y = Math.floor(y);
+      const T = Math.floor(t);
+      
+      const value = Math.sin(
+        X * 0.3 + Y * 0.2 + T * 0.1 +
+        Math.sin(X * 0.1 + Y * 0.3 + T * 0.2) +
+        Math.sin(X * 0.2 + Y * 0.1 + T * 0.3)
+      );
+      
+      return value;
+    };
 
     const animate = () => {
       if (!ctx || !canvas) return;
+      frameRef.current = requestAnimationFrame(animate);
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       timeRef.current += 0.002;
 
-      particlesRef.current.forEach((particle, i) => {
-        // Use Perlin noise for organic movement
-        const angle = noise.noise2D(particle.x * 0.005, particle.y * 0.005 + timeRef.current) * Math.PI * 2;
-        particle.vx = Math.cos(angle) * 0.5;
-        particle.vy = Math.sin(angle) * 0.5;
+      particles.forEach((particle, i) => {
+        // Update velocity based on noise field
+        const angle = noise(particle.x * 0.01, particle.y * 0.01, timeRef.current) * Math.PI * 2;
+        particle.vx += Math.cos(angle) * 0.02;
+        particle.vy += Math.sin(angle) * 0.02;
 
+        // Apply some drag
+        particle.vx *= 0.99;
+        particle.vy *= 0.99;
+
+        // Update position
         particle.x += particle.vx;
         particle.y += particle.vy;
 
@@ -145,45 +95,45 @@ const GenerativeTitle = ({ children }: { children: React.ReactNode }) => {
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Update life cycle
-        particle.life -= 0.001;
+        // Update life
+        particle.life -= 0.003;
         if (particle.life <= 0) {
-          particle.life = 1;
-          particle.x = Math.random() * canvas.width;
-          particle.y = Math.random() * canvas.height;
+          particles[i] = createParticle();
         }
 
         // Draw particle
-        const size = 1 + noise.noise2D(timeRef.current + i * 0.1, 0) * 2;
         ctx.beginPath();
         ctx.fillStyle = `rgba(255, 255, 255, ${particle.life * 0.5})`;
-        ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
 
         // Draw connections
-        particlesRef.current.forEach((other, j) => {
-          if (i === j) return;
+        for (let j = i + 1; j < particles.length; j++) {
+          const other = particles[j];
           const dx = other.x - particle.x;
           const dy = other.y - particle.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < 50) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - distance / 50) * 0.15 * particle.life * other.life})`;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${
+              (1 - distance / 50) * 0.2 * particle.life * other.life
+            })`;
             ctx.lineWidth = 0.5;
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(other.x, other.y);
             ctx.stroke();
           }
-        });
+        }
       });
-
-      requestAnimationFrame(animate);
     };
 
     animate();
 
     return () => {
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
       window.removeEventListener('resize', updateCanvasSize);
     };
   }, []);
