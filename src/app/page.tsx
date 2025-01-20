@@ -1,8 +1,43 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Script from 'next/script';
-import SplineBackground from '@/components/SplineBackground';
+
+const MatrixText = ({ text }: { text: string }) => {
+  const [displayText, setDisplayText] = useState(text);
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*';
+  
+  useEffect(() => {
+    let iterations = 0;
+    const maxIterations = 15;
+    const interval = 50;
+    
+    const scramble = () => {
+      const scrambled = text.split('').map((char, index) => {
+        if (char === ' ') return ' ';
+        if (iterations > maxIterations - (index / 3)) {
+          return char;
+        }
+        return characters[Math.floor(Math.random() * characters.length)];
+      }).join('');
+      
+      setDisplayText(scrambled);
+      
+      iterations++;
+      if (iterations < maxIterations) {
+        setTimeout(scramble, interval);
+      }
+    };
+    
+    scramble();
+    
+    return () => {
+      iterations = maxIterations;
+    };
+  }, [text]);
+  
+  return <span>{displayText}</span>;
+};
 
 export default function Home() {
   return (
@@ -41,18 +76,14 @@ export default function Home() {
         })}
       </Script>
 
-      {/* Background Scene */}
-      <SplineBackground />
-
-      {/* Main Content */}
-      <main className="relative min-h-screen">
-        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-8">
-          <div className="max-w-4xl w-full text-center mt-32 mb-16">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight animate-scale-in mb-6 sm:mb-8">
-              Digital Art & Creative Development
+      <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white relative overflow-hidden">
+        <div className="z-10 w-full max-w-5xl items-center justify-between text-sm lg:flex">
+          <div className="w-full text-center">
+            <h1 className="text-4xl md:text-6xl font-light tracking-tight mb-6">
+              <MatrixText text="Digital Art & Creative Development" />
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 sm:mb-12">
-              Delivering advanced technical solutions in real-time graphics, machine learning, and interactive systems
+            <p className="text-neutral-400 text-lg md:text-xl max-w-2xl mx-auto">
+              Exploring the intersection of art and technology through creative coding and digital experiences
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link

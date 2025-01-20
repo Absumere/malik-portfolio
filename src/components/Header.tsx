@@ -2,67 +2,52 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { GlitchText } from './ui/GlitchText';
 
 export default function Header() {
   const pathname = usePathname();
-  const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/10">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            <GlitchText text="MALIK ARBAB" className="text-2xl font-bold" />
+    <header className="fixed top-0 left-0 w-full z-50 bg-black/50 backdrop-blur-lg border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <Link href="/" className="text-white hover:text-white/80 transition-colors">
+            <span className="text-lg font-light tracking-tight">Malik Arbab</span>
           </Link>
-          
-          <div className="flex space-x-8">
-            <Link 
-              href="/portfolio" 
-              className={`${
-                isActive('/portfolio') 
-                  ? 'text-white border-b-2 border-white' 
-                  : 'text-gray-300 hover:text-white'
-              } transition-colors`}
+
+          <nav className="flex gap-8">
+            <Link
+              href="/portfolio"
+              className={`text-sm ${
+                pathname === '/portfolio'
+                  ? 'text-white'
+                  : 'text-neutral-400 hover:text-white/80'
+              }`}
             >
               Portfolio
             </Link>
-
-            <Link 
-              href="/shop" 
-              className={`${
-                isActive('/shop') 
-                  ? 'text-white border-b-2 border-white' 
-                  : 'text-gray-300 hover:text-white'
-              } transition-colors`}
-            >
-              Shop
-            </Link>
-
-            <Link 
-              href="/ai-tools" 
-              className={`${
-                isActive('/ai-tools') 
-                  ? 'text-white border-b-2 border-white' 
-                  : 'text-gray-300 hover:text-white'
-              } transition-colors`}
-            >
-              AI Tools
-            </Link>
-
-            <Link 
-              href="/about" 
-              className={`${
-                isActive('/about') 
-                  ? 'text-white border-b-2 border-white' 
-                  : 'text-gray-300 hover:text-white'
-              } transition-colors`}
-            >
-              About
-            </Link>
-          </div>
+            <div className="relative group">
+              <Link
+                href="#"
+                className={`text-sm ${
+                  pathname === '/ai'
+                    ? 'text-white'
+                    : 'text-neutral-400 hover:text-white/80'
+                }`}
+                onClick={(e) => e.preventDefault()}
+              >
+                AI Tools
+              </Link>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity">
+                <div className="bg-neutral-900 border border-white/10 rounded-lg shadow-xl p-2 min-w-[200px]">
+                  <p className="text-xs text-neutral-400 px-3 py-2">
+                    Coming soon...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </nav>
         </div>
-      </nav>
+      </div>
     </header>
   );
 }
