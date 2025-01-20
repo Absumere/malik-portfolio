@@ -28,7 +28,7 @@ export default function ImageTurntable({ images, currentIndex, onNavigate }: Ima
       x: 0,
       opacity: 1,
       scale: 1,
-    }),
+    },
     exit: (direction: number) => ({
       zIndex: 0,
       x: direction < 0 ? '100%' : '-100%',
