@@ -1,180 +1,59 @@
 'use client';
 
-import { Suspense } from 'react';
-import { SpectralWave, TokenPurchaseModal } from '@/components/ui';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { useAuth } from '@/context/AuthContext';
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import ScrollReset from '@/components/ScrollReset';
+import { useEffect, useState } from 'react';
 
-type Tool = {
-  id: string;
-  name: string;
-  category: 'generative-ai' | 'deepfake';
-  categoryLabel: string;
-  description: string;
-  tokenCost: number;
-  pricePerToken: number;
-  comingSoon?: boolean;
+const MatrixText = ({ text }: { text: string }) => {
+  const [displayText, setDisplayText] = useState(text);
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*';
+  
+  useEffect(() => {
+    let iterations = 0;
+    const maxIterations = 8;
+    const interval = 80;
+    let timeoutId: NodeJS.Timeout;
+    
+    const scramble = () => {
+      const scrambled = text.split('').map((char, index) => {
+        if (char === ' ') return ' ';
+        if (iterations > maxIterations - (index / 5)) {
+          return char;
+        }
+        return characters[Math.floor(Math.random() * characters.length)];
+      }).join('');
+      
+      setDisplayText(scrambled);
+      
+      iterations++;
+      if (iterations < maxIterations) {
+        timeoutId = setTimeout(scramble, interval);
+      }
+    };
+    
+    scramble();
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [text]);
+  
+  return <span>{displayText}</span>;
 };
 
-const tools: Tool[] = [
-  {
-    id: 'neural-image-generator',
-    name: 'Neural Image Generator',
-    category: 'generative-ai',
-    categoryLabel: 'Generative AI',
-    description: 'Create high-quality images from text descriptions using state-of-the-art AI models. Supports various styles and advanced parameters.',
-    tokenCost: 1,
-    pricePerToken: 0.50,
-  },
-  {
-    id: 'deepfake-studio',
-    name: 'DeepFake Studio',
-    category: 'deepfake',
-    categoryLabel: 'Deepfake',
-    description: 'Professional face swapping and manipulation tool with ethical guidelines and watermarking. For educational and entertainment purposes only.',
-    tokenCost: 2,
-    pricePerToken: 0.50,
-  },
-];
-
-function AiToolsContent() {
-  const { user } = useAuth();
-  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
-  const userTokens = useQuery(api.tokens.get, { userId: user?._id ?? "" });
-  const [filter, setFilter] = useState<'all' | 'generative-ai' | 'deepfake'>('all');
-
-  const filteredTools = tools.filter(tool => 
-    filter === 'all' ? true : tool.category === filter
-  );
-
+export default function AITools() {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <ScrollReset />
-      <div className="container mx-auto px-4 pt-24 pb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8 text-center"
-        >
-          <h1 className="text-4xl font-bold mb-4">AI Tools</h1>
-          <p className="text-xl text-gray-300">
-            Explore our collection of AI-powered tools
+    <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white relative overflow-hidden px-4">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="space-y-8 text-center">
+          <h1 className="text-5xl md:text-7xl font-light tracking-tight">
+            <MatrixText text="AI Tools" />
+          </h1>
+          <p className="text-neutral-400 text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed">
+            A collection of powerful AI tools for creative development.
+            <br />
+            <span className="text-emerald-500 mt-4 block text-2xl md:text-3xl">Coming Soon</span>
           </p>
-          <p className="text-sm text-gray-400 mt-2">
-            1 Token = $0.50
-          </p>
-        </motion.div>
-
-        {/* Token Balance */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8 p-6 bg-[#111111] rounded-sm border border-white/10"
-        >
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Token Balance</h2>
-              <p className="text-4xl font-bold">
-                {userTokens?.balance || 0} <span className="text-sm text-gray-400">tokens</span>
-              </p>
-            </div>
-            <button
-              onClick={() => setIsPurchaseModalOpen(true)}
-              className="px-6 py-2 bg-white text-black rounded-sm hover:bg-white/90 transition-colors"
-            >
-              Purchase Tokens
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Filter buttons */}
-        <div className="flex gap-2 mb-8">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-sm transition-colors ${
-              filter === 'all'
-                ? 'bg-white text-black'
-                : 'bg-[#111111] text-white hover:bg-[#222222]'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('generative-ai')}
-            className={`px-4 py-2 rounded-sm transition-colors ${
-              filter === 'generative-ai'
-                ? 'bg-white text-black'
-                : 'bg-[#111111] text-white hover:bg-[#222222]'
-            }`}
-          >
-            Generative AI
-          </button>
-          <button
-            onClick={() => setFilter('deepfake')}
-            className={`px-4 py-2 rounded-sm transition-colors ${
-              filter === 'deepfake'
-                ? 'bg-white text-black'
-                : 'bg-[#111111] text-white hover:bg-[#222222]'
-            }`}
-          >
-            Deepfake
-          </button>
-        </div>
-
-        {/* AI Tools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredTools.map((tool, index) => (
-            <motion.div
-              key={tool.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-[#111111] rounded-sm border border-white/10 p-6"
-            >
-              <h3 className="text-xl font-semibold mb-4">{tool.name}</h3>
-              <p className="text-gray-400 mb-6">{tool.description}</p>
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="text-sm text-gray-400">Cost</div>
-                  <div className="font-medium">{tool.tokenCost} tokens</div>
-                </div>
-                <button
-                  disabled={!user || !!tool.comingSoon}
-                  className={`w-full px-4 py-2 bg-white text-black rounded-sm hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {tool.comingSoon ? 'Coming Soon' : user ? 'Use Tool' : 'Sign in to Use'}
-                </button>
-              </div>
-            </motion.div>
-          ))}
         </div>
       </div>
-
-      {/* Background Effect */}
-      <div className="fixed inset-0 -z-10">
-        <SpectralWave />
-      </div>
-
-      <TokenPurchaseModal
-        isOpen={isPurchaseModalOpen}
-        onClose={() => setIsPurchaseModalOpen(false)}
-      />
-    </div>
-  );
-}
-
-export default function AiToolsPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <div className="text-white text-2xl">Loading...</div>
-    </div>}>
-      <AiToolsContent />
-    </Suspense>
+    </main>
   );
 }
