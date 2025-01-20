@@ -1,119 +1,100 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 
-const DigitalText = ({ text }: { text: string }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout>();
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    // Create a glitch effect every few seconds
-    intervalRef.current = setInterval(() => {
-      setIsHovered(false);
-      setTimeout(() => setIsHovered(true), 100);
-    }, 2000);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+// Perlin noise implementation
+const noise = {
+  grad3: new Float32Array([1,1,0,-1,1,0,1,-1,0,-1,-1,0,
+                          1,0,1,-1,0,1,1,0,-1,-1,0,-1,
+                          0,1,1,0,-1,1,0,1,-1,0,-1,-1]),
+  p: new Uint8Array(256),
+  perm: new Uint8Array(512),
+  
+  seed(seed: number) {
+    if(seed > 0 && seed < 1) seed *= 65536;
+    seed = Math.floor(seed);
+    if(seed < 256) seed |= seed << 8;
+    const p = this.p;
+    for(let i = 0; i < 256; i++) {
+      const v = i & 1 ? ((seed * i) >> 8) & 255 : (seed * i) & 255;
+      p[i] = v;
     }
-  };
+    for(let i = 0; i < 512; i++) {
+      this.perm[i] = p[i & 255];
+    }
+  },
 
-  return (
-    <div className="relative inline-block">
-      <svg className="absolute w-0 h-0">
-        <defs>
-          <filter id="noise">
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency="0.7"
-              numOctaves="3"
-              stitchTiles="stitch"
-            />
-            <feColorMatrix type="saturate" values="0" />
-            <feBlend mode="multiply" />
-          </filter>
-          <filter id="distort">
-            <feTurbulence
-              type="turbulence"
-              baseFrequency="0.01 0.01"
-              numOctaves="1"
-              seed="1"
-              stitchTiles="stitch"
-            >
-              <animate
-                attributeName="baseFrequency"
-                values="0.01 0.01;0.02 0.02;0.01 0.01"
-                dur="2s"
-                repeatCount="indefinite"
-              />
-            </feTurbulence>
-            <feDisplacementMap in="SourceGraphic" scale="10" />
-          </filter>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="blur" />
-            <feComposite in="blur" operator="over" in2="SourceGraphic" />
-          </filter>
-        </defs>
-      </svg>
-      <motion.div
-        className="relative"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        animate={isHovered ? {
-          filter: [
-            'url(#distort) brightness(1.2)',
-            'url(#noise) brightness(1.1)',
-            'url(#glow) brightness(1.2)',
-          ],
-          transition: { duration: 0.2, repeat: Infinity, repeatType: 'reverse' }
-        } : {
-          filter: 'none',
-          transition: { duration: 0.3 }
-        }}
-      >
-        <motion.span
-          className={`inline-block font-bold bg-gradient-to-r from-white via-white/90 to-white bg-clip-text text-transparent`}
-          animate={isHovered ? {
-            x: [-1, 1, -1],
-            transition: { duration: 0.2, repeat: Infinity }
-          } : { x: 0 }}
-        >
-          {text}
-        </motion.span>
-        <AnimatePresence>
-          {isHovered && (
-            <motion.span
-              className="absolute inset-0 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 opacity-50 mix-blend-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            />
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </div>
-  );
+  noise2D(x: number, y: number) {
+    const perm = this.perm;
+    const grad3 = this.grad3;
+
+    const F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
+    const G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
+
+    const s = (x + y) * F2;
+    const i = Math.floor(x + s);
+    const j = Math.floor(y + s);
+    const t = (i + j) * G2;
+    
+    const X0 = i - t;
+    const Y0 = j - t;
+    const x0 = x - X0;
+    const y0 = y - Y0;
+
+    let i1, j1;
+    if(x0 > y0) {
+      i1 = 1;
+      j1 = 0;
+    } else {
+      i1 = 0;
+      j1 = 1;
+    }
+
+    const x1 = x0 - i1 + G2;
+    const y1 = y0 - j1 + G2;
+    const x2 = x0 - 1.0 + 2.0 * G2;
+    const y2 = y0 - 1.0 + 2.0 * G2;
+
+    const ii = i & 255;
+    const jj = j & 255;
+
+    const gi0 = perm[ii + perm[jj]] % 12 * 3;
+    const gi1 = perm[ii + i1 + perm[jj + j1]] % 12 * 3;
+    const gi2 = perm[ii + 1 + perm[jj + 1]] % 12 * 3;
+
+    let n0 = 0.0;
+    let t0 = 0.5 - x0 * x0 - y0 * y0;
+    if(t0 >= 0) {
+      t0 *= t0;
+      n0 = t0 * t0 * (grad3[gi0] * x0 + grad3[gi0 + 1] * y0);
+    }
+
+    let n1 = 0.0;
+    let t1 = 0.5 - x1 * x1 - y1 * y1;
+    if(t1 >= 0) {
+      t1 *= t1;
+      n1 = t1 * t1 * (grad3[gi1] * x1 + grad3[gi1 + 1] * y1);
+    }
+
+    let n2 = 0.0;
+    let t2 = 0.5 - x2 * x2 - y2 * y2;
+    if(t2 >= 0) {
+      t2 *= t2;
+      n2 = t2 * t2 * (grad3[gi2] * x2 + grad3[gi2 + 1] * y2);
+    }
+
+    return 70.0 * (n0 + n1 + n2);
+  }
 };
 
-const GenerativeText = ({ text }: { text: string }) => {
+noise.seed(Math.random());
+
+const GenerativeTitle = ({ children }: { children: React.ReactNode }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-  const particlesRef = useRef<{x: number; y: number; angle: number; speed: number; size: number}[]>([]);
+  const particlesRef = useRef<{x: number; y: number; vx: number; vy: number; life: number}[]>([]);
+  const timeRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -123,7 +104,6 @@ const GenerativeText = ({ text }: { text: string }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size to match text element
     const updateCanvasSize = () => {
       const rect = textElement.getBoundingClientRect();
       canvas.width = rect.width;
@@ -133,31 +113,31 @@ const GenerativeText = ({ text }: { text: string }) => {
     window.addEventListener('resize', updateCanvasSize);
 
     // Initialize particles
-    const numParticles = 100;
+    const numParticles = 200;
     particlesRef.current = Array.from({ length: numParticles }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      angle: Math.random() * Math.PI * 2,
-      speed: 0.2 + Math.random() * 0.3,
-      size: 1 + Math.random() * 2
+      vx: 0,
+      vy: 0,
+      life: Math.random()
     }));
 
-    let time = 0;
     const animate = () => {
       if (!ctx || !canvas) return;
-      
-      // Clear canvas with fade effect
+
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      time += 0.01;
+      timeRef.current += 0.002;
 
-      // Update and draw particles
       particlesRef.current.forEach((particle, i) => {
-        // Update position with flowing motion
-        particle.angle += Math.sin(time + i * 0.1) * 0.02;
-        particle.x += Math.cos(particle.angle) * particle.speed;
-        particle.y += Math.sin(particle.angle) * particle.speed;
+        // Use Perlin noise for organic movement
+        const angle = noise.noise2D(particle.x * 0.005, particle.y * 0.005 + timeRef.current) * Math.PI * 2;
+        particle.vx = Math.cos(angle) * 0.5;
+        particle.vy = Math.sin(angle) * 0.5;
+
+        particle.x += particle.vx;
+        particle.y += particle.vy;
 
         // Wrap around edges
         if (particle.x < 0) particle.x = canvas.width;
@@ -165,20 +145,19 @@ const GenerativeText = ({ text }: { text: string }) => {
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Draw particle with gradient
-        const gradient = ctx.createRadialGradient(
-          particle.x, particle.y, 0,
-          particle.x, particle.y, particle.size * 2
-        );
-        
-        // Use time to create color transitions
-        const hue = (time * 10 + i) % 360;
-        gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.8)`);
-        gradient.addColorStop(1, `hsla(${hue}, 100%, 70%, 0)`);
+        // Update life cycle
+        particle.life -= 0.001;
+        if (particle.life <= 0) {
+          particle.life = 1;
+          particle.x = Math.random() * canvas.width;
+          particle.y = Math.random() * canvas.height;
+        }
 
+        // Draw particle
+        const size = 1 + noise.noise2D(timeRef.current + i * 0.1, 0) * 2;
         ctx.beginPath();
-        ctx.fillStyle = gradient;
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${particle.life * 0.5})`;
+        ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
         ctx.fill();
 
         // Draw connections
@@ -190,7 +169,7 @@ const GenerativeText = ({ text }: { text: string }) => {
 
           if (distance < 50) {
             ctx.beginPath();
-            ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.2 * (1 - distance / 50)})`;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - distance / 50) * 0.15 * particle.life * other.life})`;
             ctx.lineWidth = 0.5;
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(other.x, other.y);
@@ -216,11 +195,8 @@ const GenerativeText = ({ text }: { text: string }) => {
         className="absolute inset-0 pointer-events-none"
         style={{ mixBlendMode: 'screen' }}
       />
-      <div
-        ref={textRef}
-        className="relative z-10 font-bold bg-clip-text text-transparent bg-gradient-to-br from-[#ff3366] via-[#ff6b6b] to-[#4834d4]"
-      >
-        {text}
+      <div ref={textRef} className="relative z-10">
+        {children}
       </div>
     </div>
   );
@@ -231,13 +207,17 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white relative overflow-hidden px-4">
       <div className="w-full max-w-4xl mx-auto -mt-16">
         <div className="space-y-8 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
-            <DigitalText text="Digital Art" />
-            <br />
-            <span className="text-4xl md:text-6xl font-light bg-gradient-to-r from-white/90 to-white/70 bg-clip-text text-transparent">
-              & Creative Development
-            </span>
-          </h1>
+          <GenerativeTitle>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
+              <span className="bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent">
+                Digital Art
+                <br />
+                <span className="text-4xl md:text-6xl font-light">
+                  & Creative Development
+                </span>
+              </span>
+            </h1>
+          </GenerativeTitle>
           <p className="text-neutral-400 text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed">
             Exploring the intersection of art and technology through creative coding and digital experiences
           </p>
