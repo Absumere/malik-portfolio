@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .text { fill: white; font-family: Arial, sans-serif; font-weight: bold; }
+    .circle {
+      fill: black;
+      stroke: white;
+      stroke-width: 2;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { stroke-width: 2; }
+      50% { stroke-width: 3; }
+      100% { stroke-width: 2; }
+    }
+  </style>
+  <circle class="circle" cx="16" cy="16" r="14"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="text" font-size="16">MA</text>
+</svg>
