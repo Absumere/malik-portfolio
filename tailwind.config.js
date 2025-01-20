@@ -13,6 +13,7 @@ module.exports = {
         'glitch-skew': 'glitch-skew 1s infinite linear alternate-reverse',
         'glitch-movement': 'glitch-movement 0.4s infinite',
         'glitch-color': 'glitch-color 0.8s infinite',
+        'gradient-x': 'gradient-x 15s ease infinite',
       },
       keyframes: {
         'text-shimmer': {
@@ -67,7 +68,22 @@ module.exports = {
             textShadow: '2px 0 #ff00ea, -2px -2px #00ffff',
             transform: 'translate(-1px, 2px)'
           }
-        }
+        },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       colors: {
         // You can add custom colors here

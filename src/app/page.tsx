@@ -1,70 +1,111 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 
-const MatrixText = ({ text }: { text: string }) => {
-  const [displayText, setDisplayText] = useState(text);
-  const targetRef = useRef(text);
-  const iterationsRef = useRef(0);
-  const frameRef = useRef(0);
-  
-  const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ';
-  
+const NeuralFlowText = ({ text }: { text: string }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    const maxFrames = 20;
-    const interval = 40; // Faster initial animation
-    
-    const scramble = () => {
-      const frame = frameRef.current;
-      const currentText = targetRef.current;
-      
-      const scrambled = currentText.split('').map((targetChar, charIndex) => {
-        if (targetChar === ' ') return ' ';
-        
-        // Calculate progress for this character (0 to 1)
-        const charProgress = Math.max(0, frame - charIndex * 1.5) / maxFrames;
-        
-        // If we've reached the final state for this character
-        if (charProgress >= 1) {
-          return targetChar;
-        }
-        
-        // Random character selection with bias towards the target character
-        if (Math.random() < charProgress * 0.5) {
-          return targetChar;
-        }
-        
-        // Select random character with preference for matrix-like characters
-        const randomChar = characters.charAt(Math.floor(Math.random() * characters.length));
-        return randomChar;
-      }).join('');
-      
-      setDisplayText(scrambled);
-      
-      frameRef.current++;
-      
-      // Continue animation if not all characters have settled
-      if (frameRef.current <= maxFrames + currentText.length * 1.5) {
-        timeoutId = setTimeout(scramble, interval);
-      }
+    const canvas = canvasRef.current;
+    const textElement = textRef.current;
+    if (!canvas || !textElement) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size to match text element
+    const updateCanvasSize = () => {
+      const rect = textElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
     };
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+
+    // Neural network nodes
+    const nodes: { x: number; y: number; vx: number; vy: number }[] = [];
+    const numNodes = 50;
+    const connectionDistance = 100;
     
-    // Reset and start animation
-    frameRef.current = 0;
-    targetRef.current = text;
-    scramble();
-    
+    // Initialize nodes
+    for (let i = 0; i < numNodes; i++) {
+      nodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5
+      });
+    }
+
+    // Animation loop
+    const animate = () => {
+      if (!ctx || !canvas) return;
+      
+      // Clear canvas with slight fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Update and draw nodes
+      nodes.forEach((node, i) => {
+        // Update position
+        node.x += node.vx;
+        node.y += node.vy;
+
+        // Bounce off edges
+        if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+        if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+        // Draw connections
+        nodes.forEach((otherNode, j) => {
+          if (i === j) return;
+          const dx = otherNode.x - node.x;
+          const dy = otherNode.y - node.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < connectionDistance) {
+            const alpha = (1 - distance / connectionDistance) * 0.2;
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(100, 200, 255, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(otherNode.x, otherNode.y);
+            ctx.stroke();
+          }
+        });
+
+        // Draw node
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(100, 200, 255, 0.8)';
+        ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animate);
+    };
+
+    animate();
+
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('resize', updateCanvasSize);
     };
-  }, [text]);
-  
+  }, []);
+
   return (
-    <span className="font-mono tracking-tight">
-      {displayText}
-    </span>
+    <div className="relative inline-block">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 pointer-events-none"
+        style={{ mixBlendMode: 'screen' }}
+      />
+      <div
+        ref={textRef}
+        className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-gradient-x"
+      >
+        {text}
+      </div>
+    </div>
   );
 };
 
@@ -73,8 +114,12 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white relative overflow-hidden px-4">
       <div className="w-full max-w-4xl mx-auto -mt-16">
         <div className="space-y-8 text-center">
-          <h1 className="text-5xl md:text-7xl font-light tracking-tight">
-            <MatrixText text="Digital Art & Creative Development" />
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
+            <NeuralFlowText text="Digital Art" />
+            <br />
+            <span className="text-4xl md:text-6xl font-light bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+              & Creative Development
+            </span>
           </h1>
           <p className="text-neutral-400 text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed">
             Exploring the intersection of art and technology through creative coding and digital experiences
