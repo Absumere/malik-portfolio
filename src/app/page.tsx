@@ -1,40 +1,58 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const MatrixText = ({ text }: { text: string }) => {
   const [displayText, setDisplayText] = useState(text);
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*';
+  const targetRef = useRef(text);
+  const iterationsRef = useRef(0);
+  const frameRef = useRef(0);
+  
+  const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ';
   
   useEffect(() => {
-    let iterations = 0;
-    const maxIterations = 8; // Reduced iterations for faster settling
-    const interval = 80; // Slowed down the interval
     let timeoutId: NodeJS.Timeout;
+    const maxFrames = 20;
+    const interval = 40; // Faster initial animation
     
     const scramble = () => {
-      const scrambled = text.split('').map((char, index) => {
-        if (char === ' ') return ' ';
-        if (iterations > maxIterations - (index / 5)) { // Slower progression through characters
-          return char;
+      const frame = frameRef.current;
+      const currentText = targetRef.current;
+      
+      const scrambled = currentText.split('').map((targetChar, charIndex) => {
+        if (targetChar === ' ') return ' ';
+        
+        // Calculate progress for this character (0 to 1)
+        const charProgress = Math.max(0, frame - charIndex * 1.5) / maxFrames;
+        
+        // If we've reached the final state for this character
+        if (charProgress >= 1) {
+          return targetChar;
         }
-        return characters[Math.floor(Math.random() * characters.length)];
+        
+        // Random character selection with bias towards the target character
+        if (Math.random() < charProgress * 0.5) {
+          return targetChar;
+        }
+        
+        // Select random character with preference for matrix-like characters
+        const randomChar = characters.charAt(Math.floor(Math.random() * characters.length));
+        return randomChar;
       }).join('');
       
       setDisplayText(scrambled);
       
-      iterations++;
-      if (iterations < maxIterations) {
+      frameRef.current++;
+      
+      // Continue animation if not all characters have settled
+      if (frameRef.current <= maxFrames + currentText.length * 1.5) {
         timeoutId = setTimeout(scramble, interval);
-      } else {
-        // Start a new scramble after a delay
-        timeoutId = setTimeout(() => {
-          iterations = 0;
-          scramble();
-        }, 5000); // Wait 5 seconds before repeating
       }
     };
     
+    // Reset and start animation
+    frameRef.current = 0;
+    targetRef.current = text;
     scramble();
     
     return () => {
@@ -42,7 +60,11 @@ const MatrixText = ({ text }: { text: string }) => {
     };
   }, [text]);
   
-  return <span>{displayText}</span>;
+  return (
+    <span className="font-mono tracking-tight">
+      {displayText}
+    </span>
+  );
 };
 
 export default function Home() {
