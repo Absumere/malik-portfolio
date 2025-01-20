@@ -36,9 +36,15 @@ const GenerativeTitle = ({ children }: { children: React.ReactNode }) => {
     }> = [];
 
     const createParticle = () => {
+      // Create particles in a circular area
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * (canvas.width * 0.4); // 40% of canvas width
+      const x = canvas.width / 2 + Math.cos(angle) * radius;
+      const y = canvas.height / 2 + Math.sin(angle) * radius;
+      
       return {
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
+        x,
+        y,
         vx: (Math.random() - 0.5) * 0.5,
         vy: (Math.random() - 0.5) * 0.5,
         size: Math.random() * 2 + 1,
@@ -70,7 +76,14 @@ const GenerativeTitle = ({ children }: { children: React.ReactNode }) => {
       if (!ctx || !canvas) return;
       frameRef.current = requestAnimationFrame(animate);
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      // Clear with radial gradient
+      const gradient = ctx.createRadialGradient(
+        canvas.width / 2, canvas.height / 2, 0,
+        canvas.width / 2, canvas.height / 2, canvas.width * 0.5
+      );
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.1)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       timeRef.current += 0.002;
@@ -139,11 +152,20 @@ const GenerativeTitle = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <div className="relative inline-block">
+    <div className="relative">
+      <div className="absolute inset-0" style={{
+        background: 'radial-gradient(circle at center, transparent 30%, black 70%)',
+        pointerEvents: 'none',
+        zIndex: 1
+      }} />
       <canvas
         ref={canvasRef}
         className="absolute inset-0 pointer-events-none"
-        style={{ mixBlendMode: 'screen' }}
+        style={{ 
+          mixBlendMode: 'screen',
+          mask: 'radial-gradient(circle at center, black 30%, transparent 70%)',
+          WebkitMask: 'radial-gradient(circle at center, black 30%, transparent 70%)'
+        }}
       />
       <div ref={textRef} className="relative z-10">
         {children}
