@@ -1,112 +1,111 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const CreativeText = ({ text }: { text: string }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
+const DigitalText = ({ text }: { text: string }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const textElement = textRef.current;
-    if (!canvas || !textElement) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size to match text element
-    const updateCanvasSize = () => {
-      const rect = textElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-    };
-    updateCanvasSize();
-    window.addEventListener('resize', updateCanvasSize);
-
-    let time = 0;
-    const lines: { x1: number; y1: number; x2: number; y2: number; progress: number }[] = [];
-    const maxLines = 15;
-
-    const addLine = () => {
-      if (lines.length >= maxLines) return;
-      
-      const x1 = Math.random() * canvas.width;
-      const y1 = Math.random() * canvas.height;
-      const angle = Math.random() * Math.PI * 2;
-      const length = 50 + Math.random() * 100;
-      
-      lines.push({
-        x1,
-        y1,
-        x2: x1 + Math.cos(angle) * length,
-        y2: y1 + Math.sin(angle) * length,
-        progress: 0
-      });
-    };
-
-    const animate = () => {
-      if (!ctx || !canvas) return;
-      
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Add new lines occasionally
-      if (Math.random() < 0.05) {
-        addLine();
-      }
-
-      // Update and draw lines
-      for (let i = lines.length - 1; i >= 0; i--) {
-        const line = lines[i];
-        line.progress += 0.01;
-
-        if (line.progress >= 1) {
-          lines.splice(i, 1);
-          continue;
-        }
-
-        const progress = Math.sin(line.progress * Math.PI);
-        const alpha = progress * 0.5;
-        
-        // Draw line with gradient
-        const gradient = ctx.createLinearGradient(line.x1, line.y1, line.x2, line.y2);
-        gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
-        gradient.addColorStop(0.5, `rgba(255, 255, 255, ${alpha})`);
-        gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-
-        ctx.beginPath();
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = 1;
-        ctx.moveTo(line.x1, line.y1);
-        ctx.lineTo(line.x2, line.y2);
-        ctx.stroke();
-      }
-
-      time += 0.01;
-      requestAnimationFrame(animate);
-    };
-
-    animate();
-
     return () => {
-      window.removeEventListener('resize', updateCanvasSize);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    // Create a glitch effect every few seconds
+    intervalRef.current = setInterval(() => {
+      setIsHovered(false);
+      setTimeout(() => setIsHovered(true), 100);
+    }, 2000);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
+
   return (
     <div className="relative inline-block">
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 pointer-events-none opacity-75"
-        style={{ mixBlendMode: 'screen' }}
-      />
-      <div
-        ref={textRef}
-        className="relative z-10 font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80"
+      <svg className="absolute w-0 h-0">
+        <defs>
+          <filter id="noise">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.7"
+              numOctaves="3"
+              stitchTiles="stitch"
+            />
+            <feColorMatrix type="saturate" values="0" />
+            <feBlend mode="multiply" />
+          </filter>
+          <filter id="distort">
+            <feTurbulence
+              type="turbulence"
+              baseFrequency="0.01 0.01"
+              numOctaves="1"
+              seed="1"
+              stitchTiles="stitch"
+            >
+              <animate
+                attributeName="baseFrequency"
+                values="0.01 0.01;0.02 0.02;0.01 0.01"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" scale="10" />
+          </filter>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="blur" operator="over" in2="SourceGraphic" />
+          </filter>
+        </defs>
+      </svg>
+      <motion.div
+        className="relative"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        animate={isHovered ? {
+          filter: [
+            'url(#distort) brightness(1.2)',
+            'url(#noise) brightness(1.1)',
+            'url(#glow) brightness(1.2)',
+          ],
+          transition: { duration: 0.2, repeat: Infinity, repeatType: 'reverse' }
+        } : {
+          filter: 'none',
+          transition: { duration: 0.3 }
+        }}
       >
-        {text}
-      </div>
+        <motion.span
+          className={`inline-block font-bold bg-gradient-to-r from-white via-white/90 to-white bg-clip-text text-transparent`}
+          animate={isHovered ? {
+            x: [-1, 1, -1],
+            transition: { duration: 0.2, repeat: Infinity }
+          } : { x: 0 }}
+        >
+          {text}
+        </motion.span>
+        <AnimatePresence>
+          {isHovered && (
+            <motion.span
+              className="absolute inset-0 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 opacity-50 mix-blend-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 };
@@ -233,9 +232,9 @@ export default function Home() {
       <div className="w-full max-w-4xl mx-auto -mt-16">
         <div className="space-y-8 text-center">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
-            <CreativeText text="Digital Art" />
+            <DigitalText text="Digital Art" />
             <br />
-            <span className="text-4xl md:text-6xl font-light text-white/90">
+            <span className="text-4xl md:text-6xl font-light bg-gradient-to-r from-white/90 to-white/70 bg-clip-text text-transparent">
               & Creative Development
             </span>
           </h1>
