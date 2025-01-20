@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 
 const MatrixText = ({ text }: { text: string }) => {
   const [displayText, setDisplayText] = useState(text);
@@ -70,7 +71,7 @@ const MatrixText = ({ text }: { text: string }) => {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white relative overflow-hidden px-4">
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-4xl mx-auto -mt-16">
         <div className="space-y-8 text-center">
           <h1 className="text-5xl md:text-7xl font-light tracking-tight">
             <MatrixText text="Digital Art & Creative Development" />
@@ -78,6 +79,20 @@ export default function Home() {
           <p className="text-neutral-400 text-xl md:text-2xl max-w-2xl mx-auto leading-relaxed">
             Exploring the intersection of art and technology through creative coding and digital experiences
           </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+            <Link
+              href="/portfolio"
+              className="px-8 py-3 bg-white text-black rounded-sm hover:bg-white/90 transition-colors text-lg font-light"
+            >
+              View Portfolio
+            </Link>
+            <Link
+              href="/ai-tools"
+              className="px-8 py-3 border border-white text-white rounded-sm hover:bg-white/10 transition-colors text-lg font-light"
+            >
+              AI Tools
+            </Link>
+          </div>
         </div>
       </div>
     </main>
